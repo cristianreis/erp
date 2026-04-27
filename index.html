@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fundidos | Solicitacoes a Fornecedores</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Navegacao principal">
+        <div class="brand">
+          <div class="brand-mark">F</div>
+          <div>
+            <strong>Fundidos</strong>
+            <span>Controle industrial</span>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-view="dashboard" type="button">
+            <span class="nav-icon nav-icon-dashboard" aria-hidden="true"></span> Dashboard
+          </button>
+          <button class="nav-item" data-view="suppliers" type="button">
+            <span class="nav-icon nav-icon-suppliers" aria-hidden="true"></span> Fornecedores
+          </button>
+          <button class="nav-item" data-view="products" type="button">
+            <span class="nav-icon nav-icon-products" aria-hidden="true"></span> Produtos fundidos
+          </button>
+          <button class="nav-item" data-view="orders" type="button">
+            <span class="nav-icon nav-icon-orders" aria-hidden="true"></span> Solicitacoes
+          </button>
+          <button class="nav-item" data-view="calendar" type="button">
+            <span class="nav-icon nav-icon-calendar" aria-hidden="true"></span> Calendario
+          </button>
+          <button class="nav-item" data-view="reports" type="button">
+            <span class="nav-icon nav-icon-reports" aria-hidden="true"></span> Relatorios
+          </button>
+          <button class="nav-item" data-view="settings" type="button">
+            <span class="nav-icon nav-icon-settings" aria-hidden="true"></span> Configuracoes
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <span class="muted">Hoje</span>
+          <strong id="todayLabel"></strong>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <button class="icon-button menu-button" id="menuButton" type="button" aria-label="Abrir menu">
+            <span class="hamburger" aria-hidden="true"></span>
+          </button>
+          <button class="secondary-button back-top-button" id="backButton" type="button" hidden>
+            &larr; Voltar
+          </button>
+          <div>
+            <p class="eyebrow">Solicitacoes a fornecedores</p>
+            <h1 id="pageTitle">Dashboard</h1>
+          </div>
+          <div class="topbar-actions">
+            <span class="db-status info-tip" id="dbStatus" data-tip="Os dados ficam salvos no banco local do navegador desta maquina. Use o backup JSON em Configuracoes para guardar uma copia externa.">Banco local iniciando</span>
+            <button class="secondary-button" id="resetDataButton" type="button">Limpar dados</button>
+            <button class="primary-button" id="newOrderButton" type="button">Nova solicitacao</button>
+          </div>
+        </header>
+
+        <section id="alerts" class="alerts" aria-live="polite"></section>
+
+        <section id="dashboard" class="view active">
+          <div class="metrics-grid" id="metricsGrid"></div>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Acompanhamento de solicitacoes</h2>
+                <p>Filtros rapidos para visualizar o que foi solicitado e quando deve ser recebido.</p>
+              </div>
+              <button class="text-button" data-view-jump="orders" type="button">Abrir solicitacoes</button>
+            </div>
+            <div class="filters dashboard-filters">
+              <label>
+                Fornecedor
+                <select id="dashSupplier"></select>
+              </label>
+              <label>
+                Status
+                <select id="dashStatus"></select>
+              </label>
+              <label>
+                Receber de
+                <input id="dashStartDate" type="date" />
+              </label>
+              <label>
+                Receber ate
+                <input id="dashEndDate" type="date" />
+              </label>
+              <label class="check-filter">
+                <input id="dashDelayed" type="checkbox" />
+                Somente atrasadas
+              </label>
+              <label class="check-filter">
+                <input id="dashOpenOnly" type="checkbox" checked />
+                Somente pendentes
+              </label>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Solicitacao</th>
+                    <th>Fornecedor</th>
+                    <th>Produto</th>
+                    <th>Solicitada</th>
+                    <th>Recebida</th>
+                    <th>Pendente</th>
+                    <th>Previsao</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboardTrackingBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <div class="content-grid two-columns">
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Recebimentos proximos</h2>
+                  <p>Previsoes do fornecedor e atrasos com saldo pendente.</p>
+                </div>
+              </div>
+              <div id="upcomingList" class="stack-list"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Pendencia por metal</h2>
+                  <p>Peso estimado ainda em aberto.</p>
+                </div>
+              </div>
+              <div id="metalBars" class="bar-list"></div>
+            </section>
+          </div>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Solicitacoes criticas</h2>
+                <p>Atrasadas, parciais ou previstas para receber hoje.</p>
+              </div>
+              <button class="text-button" data-view-jump="orders" type="button">Ver todos</button>
+            </div>
+            <div id="criticalOrdersBody" class="stack-list"></div>
+          </section>
+        </section>
+
+        <section id="suppliers" class="view">
+          <div class="section-title">
+            <div>
+              <h2>Fornecedores</h2>
+              <p>Cadastro com CNPJ ou codigo interno, contatos e observacoes.</p>
+            </div>
+            <button class="primary-button" id="newSupplierButton" type="button">Novo fornecedor</button>
+          </div>
+          <div id="suppliersGrid" class="cards-grid"></div>
+        </section>
+
+        <section id="products" class="view">
+          <div class="section-title">
+            <div>
+              <h2>Produtos fundidos</h2>
+              <p>Itens, ligas, pesos estimados e dados tecnicos.</p>
+            </div>
+            <button class="primary-button" id="newProductButton" type="button">Novo produto</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Codigo</th>
+                  <th>Produto</th>
+                  <th>Metal</th>
+                  <th>Peso unit.</th>
+                  <th>Unidade</th>
+                  <th>Observacoes tecnicas</th>
+                  <th>Acoes</th>
+                </tr>
+              </thead>
+              <tbody id="productsBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="orders" class="view">
+          <div class="section-title">
+            <div>
+              <h2>Solicitacoes ao fornecedor</h2>
+              <p>Acompanhe o que foi solicitado, confirmado, previsto e recebido.</p>
+            </div>
+            <button class="primary-button" id="newOrderButtonAlt" type="button">Nova solicitacao</button>
+          </div>
+
+          <div class="filters">
+            <label>
+              Fornecedor
+              <select id="filterSupplier"></select>
+            </label>
+            <label>
+              Metal
+              <select id="filterMetal"></select>
+            </label>
+            <label>
+              Produto
+              <select id="filterProduct"></select>
+            </label>
+            <label>
+              Status
+              <select id="filterStatus"></select>
+            </label>
+            <label>
+              Data prevista
+              <input id="filterDate" type="date" />
+            </label>
+            <label class="check-filter">
+              <input id="filterDelayed" type="checkbox" />
+              Atrasados
+            </label>
+            <label class="check-filter">
+              <input id="filterPartial" type="checkbox" />
+              Parciais
+            </label>
+            <label class="check-filter">
+              <input id="filterComplete" type="checkbox" />
+              Completos
+            </label>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Solicitacao</th>
+                  <th>Fornecedor</th>
+                  <th>Produto</th>
+                  <th>Metal</th>
+                  <th>Qtd. solicitada</th>
+                  <th>Qtd. recebida</th>
+                  <th>Pendente</th>
+                  <th>Previsao receber</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="ordersBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="calendar" class="view">
+          <div class="section-title">
+            <div>
+              <h2>Calendario de recebimentos</h2>
+              <p>Quando devemos receber cada solicitacao, por dia, semana ou mes.</p>
+            </div>
+            <div class="segmented" role="group" aria-label="Modo do calendario">
+              <button data-calendar-mode="day" type="button">Dia</button>
+              <button class="active" data-calendar-mode="week" type="button">Semana</button>
+              <button data-calendar-mode="month" type="button">Mes</button>
+            </div>
+          </div>
+          <div id="calendarSummary" class="calendar-summary"></div>
+          <div id="calendarGrid" class="calendar-grid"></div>
+        </section>
+
+        <section id="orderDetail" class="view">
+          <button class="secondary-button back-button" data-back type="button">&larr; Voltar</button>
+          <div id="orderDetailContent"></div>
+        </section>
+
+        <section id="reports" class="view">
+          <div class="section-title">
+            <div>
+              <h2>Relatorios</h2>
+              <p>Base consolidada para compras, recebimento e acompanhamento de fornecedor.</p>
+            </div>
+            <button class="primary-button" id="exportExcelButton" type="button">Exportar Excel</button>
+          </div>
+          <section class="panel report-main-panel">
+            <div class="panel-header">
+              <div>
+                <h2>Tabela consolidada</h2>
+                <p>Solicitacoes, previsoes, saldos e status calculado.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Solicitacao</th>
+                    <th>Fornecedor</th>
+                    <th>Produto</th>
+                    <th>Metal</th>
+                    <th>Solicitada</th>
+                    <th>Recebida</th>
+                    <th>Pendente</th>
+                    <th>Previsao</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="reportConsolidatedBody"></tbody>
+              </table>
+            </div>
+          </section>
+          <div id="reportsGrid" class="report-grid"></div>
+        </section>
+
+        <section id="settings" class="view">
+          <div class="section-title">
+            <div>
+              <h2>Configuracoes</h2>
+              <p>Preferencias do acompanhamento, regras automaticas e manutencao dos dados.</p>
+            </div>
+          </div>
+          <div class="settings-grid" id="settingsGrid"></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop" hidden>
+      <dialog class="modal" id="modal">
+        <form id="modalForm" method="dialog">
+          <div class="modal-header">
+            <div>
+              <p class="eyebrow" id="modalEyebrow">Cadastro</p>
+              <h2 id="modalTitle"></h2>
+            </div>
+            <button class="icon-button" id="closeModalButton" type="button" aria-label="Fechar">&times;</button>
+          </div>
+          <div id="modalFields" class="modal-fields"></div>
+          <div class="modal-actions">
+            <button class="secondary-button" id="cancelModalButton" type="button">Cancelar</button>
+            <button class="primary-button" id="saveModalButton" type="submit">Salvar</button>
+          </div>
+        </form>
+      </dialog>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
