@@ -1,22 +1,38 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: ERP Metalúrgica PCP/MRP API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: products
+  - name: customers
+  - name: suppliers
+  - name: warehouses
+  - name: sectors
+  - name: machines
+  - name: operations
+  - name: stock
+  - name: bom
+  - name: routings
+  - name: sales-orders
+  - name: production-orders
+  - name: purchase-requests
+  - name: purchase-orders
+  - name: receipts
+  - name: quality
+  - name: mrp
+  - name: dashboard
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +40,1850 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ─── DASHBOARD ──────────────────────────────────────────────
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/low-stock:
+    get:
+      operationId: getDashboardLowStock
+      tags: [dashboard]
+      summary: Products with low stock
+      responses:
+        "200":
+          description: Low stock items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LowStockItem"
+
+  /dashboard/recent-movements:
+    get:
+      operationId: getDashboardRecentMovements
+      tags: [dashboard]
+      summary: Recent stock movements
+      responses:
+        "200":
+          description: Recent movements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StockMovement"
+
+  /dashboard/production-delayed:
+    get:
+      operationId: getDashboardProductionDelayed
+      tags: [dashboard]
+      summary: Delayed production orders
+      responses:
+        "200":
+          description: Delayed production orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductionOrder"
+
+  # ─── PRODUCTS ───────────────────────────────────────────────
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List all products
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: category
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: item_type
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: active
+          in: query
+          schema:
+            type: ["boolean", "null"]
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "201":
+          description: Created product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductBody"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Inactivate a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ─── CUSTOMERS ──────────────────────────────────────────────
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List customers
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Customers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      summary: Get customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Customer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+    patch:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCustomerBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Delete customer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ─── SUPPLIERS ──────────────────────────────────────────────
+  /suppliers:
+    get:
+      operationId: listSuppliers
+      tags: [suppliers]
+      summary: List suppliers
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Suppliers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Supplier"
+    post:
+      operationId: createSupplier
+      tags: [suppliers]
+      summary: Create supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSupplierBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+
+  /suppliers/{id}:
+    get:
+      operationId: getSupplier
+      tags: [suppliers]
+      summary: Get supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Supplier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+    patch:
+      operationId: updateSupplier
+      tags: [suppliers]
+      summary: Update supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSupplierBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+    delete:
+      operationId: deleteSupplier
+      tags: [suppliers]
+      summary: Delete supplier
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ─── WAREHOUSES ─────────────────────────────────────────────
+  /warehouses:
+    get:
+      operationId: listWarehouses
+      tags: [warehouses]
+      summary: List warehouses
+      responses:
+        "200":
+          description: Warehouses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Warehouse"
+    post:
+      operationId: createWarehouse
+      tags: [warehouses]
+      summary: Create warehouse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWarehouseBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Warehouse"
+
+  /warehouses/{id}:
+    patch:
+      operationId: updateWarehouse
+      tags: [warehouses]
+      summary: Update warehouse
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWarehouseBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Warehouse"
+
+  # ─── SECTORS ────────────────────────────────────────────────
+  /sectors:
+    get:
+      operationId: listSectors
+      tags: [sectors]
+      summary: List sectors
+      responses:
+        "200":
+          description: Sectors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sector"
+    post:
+      operationId: createSector
+      tags: [sectors]
+      summary: Create sector
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSectorBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sector"
+
+  /sectors/{id}:
+    patch:
+      operationId: updateSector
+      tags: [sectors]
+      summary: Update sector
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSectorBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sector"
+
+  # ─── MACHINES ───────────────────────────────────────────────
+  /machines:
+    get:
+      operationId: listMachines
+      tags: [machines]
+      summary: List machines
+      responses:
+        "200":
+          description: Machines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Machine"
+    post:
+      operationId: createMachine
+      tags: [machines]
+      summary: Create machine
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMachineBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Machine"
+
+  /machines/{id}:
+    patch:
+      operationId: updateMachine
+      tags: [machines]
+      summary: Update machine
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMachineBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Machine"
+
+  # ─── OPERATIONS ─────────────────────────────────────────────
+  /operations:
+    get:
+      operationId: listOperations
+      tags: [operations]
+      summary: List operations
+      responses:
+        "200":
+          description: Operations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Operation"
+    post:
+      operationId: createOperation
+      tags: [operations]
+      summary: Create operation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOperationBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Operation"
+
+  /operations/{id}:
+    patch:
+      operationId: updateOperation
+      tags: [operations]
+      summary: Update operation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOperationBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Operation"
+
+  # ─── STOCK ──────────────────────────────────────────────────
+  /stock/balances:
+    get:
+      operationId: listStockBalances
+      tags: [stock]
+      summary: List stock balances
+      parameters:
+        - name: product_id
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: warehouse_id
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: low_stock_only
+          in: query
+          schema:
+            type: ["boolean", "null"]
+      responses:
+        "200":
+          description: Stock balances
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StockBalance"
+
+  /stock/movements:
+    get:
+      operationId: listStockMovements
+      tags: [stock]
+      summary: List stock movements
+      parameters:
+        - name: product_id
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: warehouse_id
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: movement_type
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: from_date
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: to_date
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Movements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StockMovement"
+    post:
+      operationId: createStockMovement
+      tags: [stock]
+      summary: Create manual stock movement (adjustment, transfer)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStockMovementBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockMovement"
+
+  /stock/reservations:
+    get:
+      operationId: listStockReservations
+      tags: [stock]
+      summary: List stock reservations
+      parameters:
+        - name: sales_order_id
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: product_id
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StockReservation"
+
+  /stock/availability/{productId}:
+    get:
+      operationId: getStockAvailability
+      tags: [stock]
+      summary: Get stock availability for a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Availability
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StockAvailability"
+
+  # ─── BOM ────────────────────────────────────────────────────
+  /bom:
+    get:
+      operationId: listBomHeaders
+      tags: [bom]
+      summary: List bill of materials
+      parameters:
+        - name: product_id
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: BOM list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BomHeader"
+    post:
+      operationId: createBomHeader
+      tags: [bom]
+      summary: Create BOM header
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBomHeaderBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BomHeader"
+
+  /bom/{id}:
+    get:
+      operationId: getBomHeader
+      tags: [bom]
+      summary: Get BOM with items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: BOM
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BomDetail"
+    patch:
+      operationId: updateBomHeader
+      tags: [bom]
+      summary: Update BOM header
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBomHeaderBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BomHeader"
+
+  /bom/{id}/items:
+    post:
+      operationId: createBomItem
+      tags: [bom]
+      summary: Add item to BOM
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBomItemBody"
+      responses:
+        "201":
+          description: Created item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BomItem"
+
+  /bom/{id}/items/{itemId}:
+    patch:
+      operationId: updateBomItem
+      tags: [bom]
+      summary: Update BOM item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBomItemBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BomItem"
+    delete:
+      operationId: deleteBomItem
+      tags: [bom]
+      summary: Delete BOM item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ─── ROUTINGS ───────────────────────────────────────────────
+  /routings:
+    get:
+      operationId: listRoutings
+      tags: [routings]
+      summary: List routings
+      parameters:
+        - name: product_id
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Routings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Routing"
+    post:
+      operationId: createRouting
+      tags: [routings]
+      summary: Create routing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRoutingBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Routing"
+
+  /routings/{id}:
+    get:
+      operationId: getRouting
+      tags: [routings]
+      summary: Get routing with operations
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Routing detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoutingDetail"
+    patch:
+      operationId: updateRouting
+      tags: [routings]
+      summary: Update routing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoutingBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Routing"
+
+  /routings/{id}/operations:
+    post:
+      operationId: createRoutingOperation
+      tags: [routings]
+      summary: Add operation to routing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRoutingOperationBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoutingOperation"
+
+  /routings/{id}/operations/{opId}:
+    patch:
+      operationId: updateRoutingOperation
+      tags: [routings]
+      summary: Update routing operation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: opId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRoutingOperationBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoutingOperation"
+    delete:
+      operationId: deleteRoutingOperation
+      tags: [routings]
+      summary: Delete routing operation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: opId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ─── SALES ORDERS ───────────────────────────────────────────
+  /sales-orders:
+    get:
+      operationId: listSalesOrders
+      tags: [sales-orders]
+      summary: List sales orders
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: customer_id
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Sales orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SalesOrder"
+    post:
+      operationId: createSalesOrder
+      tags: [sales-orders]
+      summary: Create sales order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSalesOrderBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesOrder"
+
+  /sales-orders/{id}:
+    get:
+      operationId: getSalesOrder
+      tags: [sales-orders]
+      summary: Get sales order with items
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Sales order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesOrderDetail"
+    patch:
+      operationId: updateSalesOrder
+      tags: [sales-orders]
+      summary: Update sales order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSalesOrderBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesOrder"
+
+  /sales-orders/{id}/items:
+    post:
+      operationId: addSalesOrderItem
+      tags: [sales-orders]
+      summary: Add item to sales order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSalesOrderItemBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesOrderItem"
+
+  /sales-orders/{id}/items/{itemId}:
+    delete:
+      operationId: deleteSalesOrderItem
+      tags: [sales-orders]
+      summary: Remove item from sales order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /sales-orders/{id}/reserve:
+    post:
+      operationId: reserveSalesOrderStock
+      tags: [sales-orders]
+      summary: Reserve stock for sales order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Reserved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesOrder"
+
+  /sales-orders/{id}/approve:
+    post:
+      operationId: approveSalesOrder
+      tags: [sales-orders]
+      summary: Approve sales order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesOrder"
+
+  /sales-orders/{id}/cancel:
+    post:
+      operationId: cancelSalesOrder
+      tags: [sales-orders]
+      summary: Cancel sales order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesOrder"
+
+  /sales-orders/{id}/ship:
+    post:
+      operationId: shipSalesOrder
+      tags: [sales-orders]
+      summary: Ship / expedite order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShipSalesOrderBody"
+      responses:
+        "200":
+          description: Shipped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesOrder"
+
+  # ─── PRODUCTION ORDERS ──────────────────────────────────────
+  /production-orders:
+    get:
+      operationId: listProductionOrders
+      tags: [production-orders]
+      summary: List production orders
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: order_type
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Production orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductionOrder"
+    post:
+      operationId: createProductionOrder
+      tags: [production-orders]
+      summary: Create production order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductionOrderBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionOrder"
+
+  /production-orders/{id}:
+    get:
+      operationId: getProductionOrder
+      tags: [production-orders]
+      summary: Get production order detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionOrderDetail"
+    patch:
+      operationId: updateProductionOrder
+      tags: [production-orders]
+      summary: Update production order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProductionOrderBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionOrder"
+
+  /production-orders/{id}/release:
+    post:
+      operationId: releaseProductionOrder
+      tags: [production-orders]
+      summary: Release production order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Released
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionOrder"
+
+  /production-orders/{id}/start:
+    post:
+      operationId: startProductionOrder
+      tags: [production-orders]
+      summary: Start production
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionOrder"
+
+  /production-orders/{id}/finish:
+    post:
+      operationId: finishProductionOrder
+      tags: [production-orders]
+      summary: Finish production order and update stock
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinishProductionOrderBody"
+      responses:
+        "200":
+          description: Finished
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionOrder"
+
+  /production-orders/{id}/appointments:
+    get:
+      operationId: listProductionAppointments
+      tags: [production-orders]
+      summary: List appointments for an order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductionAppointment"
+    post:
+      operationId: createProductionAppointment
+      tags: [production-orders]
+      summary: Create appointment (apontamento)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductionAppointmentBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductionAppointment"
+
+  # ─── PURCHASE REQUESTS ──────────────────────────────────────
+  /purchase-requests:
+    get:
+      operationId: listPurchaseRequests
+      tags: [purchase-requests]
+      summary: List purchase requests
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: search
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Purchase requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PurchaseRequest"
+    post:
+      operationId: createPurchaseRequest
+      tags: [purchase-requests]
+      summary: Create purchase request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePurchaseRequestBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseRequest"
+
+  /purchase-requests/{id}:
+    patch:
+      operationId: updatePurchaseRequest
+      tags: [purchase-requests]
+      summary: Update purchase request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePurchaseRequestBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseRequest"
+
+  /purchase-requests/{id}/approve:
+    post:
+      operationId: approvePurchaseRequest
+      tags: [purchase-requests]
+      summary: Approve purchase request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseRequest"
+
+  /purchase-requests/{id}/convert:
+    post:
+      operationId: convertPurchaseRequest
+      tags: [purchase-requests]
+      summary: Convert to purchase order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConvertPurchaseRequestBody"
+      responses:
+        "200":
+          description: Converted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseOrder"
+
+  # ─── PURCHASE ORDERS ────────────────────────────────────────
+  /purchase-orders:
+    get:
+      operationId: listPurchaseOrders
+      tags: [purchase-orders]
+      summary: List purchase orders
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: supplier_id
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Purchase orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PurchaseOrder"
+    post:
+      operationId: createPurchaseOrder
+      tags: [purchase-orders]
+      summary: Create purchase order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePurchaseOrderBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseOrder"
+
+  /purchase-orders/{id}:
+    get:
+      operationId: getPurchaseOrder
+      tags: [purchase-orders]
+      summary: Get purchase order detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseOrderDetail"
+    patch:
+      operationId: updatePurchaseOrder
+      tags: [purchase-orders]
+      summary: Update purchase order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePurchaseOrderBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurchaseOrder"
+
+  # ─── RECEIPTS ───────────────────────────────────────────────
+  /receipts:
+    get:
+      operationId: listReceipts
+      tags: [receipts]
+      summary: List receipts
+      parameters:
+        - name: purchase_order_id
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Receipts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Receipt"
+    post:
+      operationId: createReceipt
+      tags: [receipts]
+      summary: Create receipt (receive purchase order)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReceiptBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Receipt"
+
+  /receipts/{id}:
+    get:
+      operationId: getReceipt
+      tags: [receipts]
+      summary: Get receipt detail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Receipt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReceiptDetail"
+
+  # ─── QUALITY INSPECTIONS ────────────────────────────────────
+  /quality-inspections:
+    get:
+      operationId: listQualityInspections
+      tags: [quality]
+      summary: List quality inspections
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: ["string", "null"]
+        - name: production_order_id
+          in: query
+          schema:
+            type: ["string", "null"]
+      responses:
+        "200":
+          description: Inspections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QualityInspection"
+    post:
+      operationId: createQualityInspection
+      tags: [quality]
+      summary: Create quality inspection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateQualityInspectionBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QualityInspection"
+
+  /quality-inspections/{id}:
+    patch:
+      operationId: updateQualityInspection
+      tags: [quality]
+      summary: Update quality inspection
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateQualityInspectionBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QualityInspection"
+
+  # ─── MRP ────────────────────────────────────────────────────
+  /mrp/run:
+    post:
+      operationId: runMrp
+      tags: [mrp]
+      summary: Run MRP calculation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RunMrpBody"
+      responses:
+        "201":
+          description: MRP run created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MrpRun"
+
+  /mrp/runs:
+    get:
+      operationId: listMrpRuns
+      tags: [mrp]
+      summary: List MRP runs
+      responses:
+        "200":
+          description: Runs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MrpRun"
+
+  /mrp/runs/{id}:
+    get:
+      operationId: getMrpRun
+      tags: [mrp]
+      summary: Get MRP run with results
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Run with results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MrpRunDetail"
+
+  /mrp/runs/{id}/approve:
+    post:
+      operationId: approveMrpRun
+      tags: [mrp]
+      summary: Approve MRP run and generate orders
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MrpApproveResult"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +1891,1795 @@ components:
       properties:
         status:
           type: string
+      required: [status]
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required: [success]
+
+    # ── Dashboard ──────────────────────────────────────────────
+    DashboardStats:
+      type: object
+      properties:
+        openSalesOrders:
+          type: integer
+        lowStockCount:
+          type: integer
+        delayedProductionOrders:
+          type: integer
+        pendingPurchaseRequests:
+          type: integer
+        availableFinishedGoods:
+          type: integer
+        inMachiningCount:
+          type: integer
+        pendingAssemblies:
+          type: integer
+        openPurchaseOrders:
+          type: integer
+        salesOrdersByStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusCount"
+        productionOrdersByStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusCount"
+        stockByCategory:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryStock"
       required:
+        - openSalesOrders
+        - lowStockCount
+        - delayedProductionOrders
+        - pendingPurchaseRequests
+        - availableFinishedGoods
+        - inMachiningCount
+        - pendingAssemblies
+        - openPurchaseOrders
+        - salesOrdersByStatus
+        - productionOrdersByStatus
+        - stockByCategory
+
+    StatusCount:
+      type: object
+      properties:
+        status:
+          type: string
+        count:
+          type: integer
+      required: [status, count]
+
+    CategoryStock:
+      type: object
+      properties:
+        category:
+          type: string
+        totalQuantity:
+          type: number
+        productCount:
+          type: integer
+      required: [category, totalQuantity, productCount]
+
+    LowStockItem:
+      type: object
+      properties:
+        id:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        currentQuantity:
+          type: number
+        reservedQuantity:
+          type: number
+        availableQuantity:
+          type: number
+        minimumStock:
+          type: number
+        suggestedAction:
+          type: string
+      required:
+        - id
+        - productCode
+        - productName
+        - currentQuantity
+        - reservedQuantity
+        - availableQuantity
+        - minimumStock
+        - suggestedAction
+
+    # ── Product ────────────────────────────────────────────────
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        categoryId:
+          type: ["string", "null"]
+        categoryName:
+          type: ["string", "null"]
+        itemType:
+          type: string
+        unit:
+          type: string
+        minimumStock:
+          type: number
+        maximumStock:
+          type: ["number", "null"]
+        safetyStock:
+          type: ["number", "null"]
+        leadTimeDays:
+          type: ["integer", "null"]
+        salePrice:
+          type: ["number", "null"]
+        costPrice:
+          type: ["number", "null"]
+        isSellable:
+          type: boolean
+        isManufactured:
+          type: boolean
+        isPurchased:
+          type: boolean
+        requiresMachining:
+          type: boolean
+        requiresAssembly:
+          type: boolean
+        active:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - code
+        - name
+        - itemType
+        - unit
+        - minimumStock
+        - isSellable
+        - isManufactured
+        - isPurchased
+        - requiresMachining
+        - requiresAssembly
+        - active
+        - createdAt
+
+    CreateProductBody:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        categoryId:
+          type: ["string", "null"]
+        itemType:
+          type: string
+        unit:
+          type: string
+        minimumStock:
+          type: number
+        maximumStock:
+          type: ["number", "null"]
+        safetyStock:
+          type: ["number", "null"]
+        leadTimeDays:
+          type: ["integer", "null"]
+        salePrice:
+          type: ["number", "null"]
+        costPrice:
+          type: ["number", "null"]
+        isSellable:
+          type: boolean
+        isManufactured:
+          type: boolean
+        isPurchased:
+          type: boolean
+        requiresMachining:
+          type: boolean
+        requiresAssembly:
+          type: boolean
+      required:
+        - code
+        - name
+        - itemType
+        - unit
+        - minimumStock
+        - isSellable
+        - isManufactured
+        - isPurchased
+        - requiresMachining
+        - requiresAssembly
+
+    UpdateProductBody:
+      type: object
+      properties:
+        code:
+          type: ["string", "null"]
+        name:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        categoryId:
+          type: ["string", "null"]
+        itemType:
+          type: ["string", "null"]
+        unit:
+          type: ["string", "null"]
+        minimumStock:
+          type: ["number", "null"]
+        maximumStock:
+          type: ["number", "null"]
+        safetyStock:
+          type: ["number", "null"]
+        leadTimeDays:
+          type: ["integer", "null"]
+        salePrice:
+          type: ["number", "null"]
+        costPrice:
+          type: ["number", "null"]
+        isSellable:
+          type: ["boolean", "null"]
+        isManufactured:
+          type: ["boolean", "null"]
+        isPurchased:
+          type: ["boolean", "null"]
+        requiresMachining:
+          type: ["boolean", "null"]
+        requiresAssembly:
+          type: ["boolean", "null"]
+        active:
+          type: ["boolean", "null"]
+
+    # ── Customer ───────────────────────────────────────────────
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        document:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        state:
+          type: ["string", "null"]
+        active:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, name, active, createdAt]
+
+    CreateCustomerBody:
+      type: object
+      properties:
+        name:
+          type: string
+        document:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        state:
+          type: ["string", "null"]
+      required: [name]
+
+    UpdateCustomerBody:
+      type: object
+      properties:
+        name:
+          type: ["string", "null"]
+        document:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        state:
+          type: ["string", "null"]
+        active:
+          type: ["boolean", "null"]
+
+    # ── Supplier ───────────────────────────────────────────────
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        document:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        state:
+          type: ["string", "null"]
+        active:
+          type: boolean
+        createdAt:
+          type: string
+      required: [id, name, active, createdAt]
+
+    CreateSupplierBody:
+      type: object
+      properties:
+        name:
+          type: string
+        document:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        state:
+          type: ["string", "null"]
+      required: [name]
+
+    UpdateSupplierBody:
+      type: object
+      properties:
+        name:
+          type: ["string", "null"]
+        document:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        state:
+          type: ["string", "null"]
+        active:
+          type: ["boolean", "null"]
+
+    # ── Warehouse ──────────────────────────────────────────────
+    Warehouse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        active:
+          type: boolean
+      required: [id, name, type, active]
+
+    CreateWarehouseBody:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+      required: [name, type]
+
+    UpdateWarehouseBody:
+      type: object
+      properties:
+        name:
+          type: ["string", "null"]
+        type:
+          type: ["string", "null"]
+        active:
+          type: ["boolean", "null"]
+
+    # ── Sector ─────────────────────────────────────────────────
+    Sector:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        active:
+          type: boolean
+      required: [id, name, active]
+
+    CreateSectorBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+      required: [name]
+
+    UpdateSectorBody:
+      type: object
+      properties:
+        name:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        active:
+          type: ["boolean", "null"]
+
+    # ── Machine ────────────────────────────────────────────────
+    Machine:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        name:
+          type: string
+        type:
+          type: ["string", "null"]
+        sectorId:
+          type: ["string", "null"]
+        sectorName:
+          type: ["string", "null"]
+        capacityPerDay:
+          type: ["number", "null"]
+        active:
+          type: boolean
+      required: [id, code, name, active]
+
+    CreateMachineBody:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        type:
+          type: ["string", "null"]
+        sectorId:
+          type: ["string", "null"]
+        capacityPerDay:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+      required: [code, name]
+
+    UpdateMachineBody:
+      type: object
+      properties:
+        code:
+          type: ["string", "null"]
+        name:
+          type: ["string", "null"]
+        type:
+          type: ["string", "null"]
+        sectorId:
+          type: ["string", "null"]
+        capacityPerDay:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+        active:
+          type: ["boolean", "null"]
+
+    # ── Operation ──────────────────────────────────────────────
+    Operation:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        operationType:
+          type: string
+        active:
+          type: boolean
+      required: [id, code, name, operationType, active]
+
+    CreateOperationBody:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        operationType:
+          type: string
+      required: [code, name, operationType]
+
+    UpdateOperationBody:
+      type: object
+      properties:
+        code:
+          type: ["string", "null"]
+        name:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        operationType:
+          type: ["string", "null"]
+        active:
+          type: ["boolean", "null"]
+
+    # ── Stock Balance ──────────────────────────────────────────
+    StockBalance:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        warehouseId:
+          type: string
+        warehouseName:
+          type: string
+        stockStatus:
+          type: string
+        quantity:
+          type: number
+        reservedQuantity:
+          type: number
+        availableQuantity:
+          type: number
+        minimumStock:
+          type: number
+        isLowStock:
+          type: boolean
+        lastMovementAt:
+          type: ["string", "null"]
+      required:
+        - id
+        - productId
+        - productCode
+        - productName
+        - warehouseId
+        - warehouseName
+        - stockStatus
+        - quantity
+        - reservedQuantity
+        - availableQuantity
+        - minimumStock
+        - isLowStock
+
+    StockAvailability:
+      type: object
+      properties:
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        totalQuantity:
+          type: number
+        reservedQuantity:
+          type: number
+        availableQuantity:
+          type: number
+        minimumStock:
+          type: number
+        isLowStock:
+          type: boolean
+        canSell:
+          type: boolean
+      required:
+        - productId
+        - productCode
+        - productName
+        - totalQuantity
+        - reservedQuantity
+        - availableQuantity
+        - minimumStock
+        - isLowStock
+        - canSell
+
+    # ── Stock Movement ─────────────────────────────────────────
+    StockMovement:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        warehouseId:
+          type: string
+        warehouseName:
+          type: string
+        movementType:
+          type: string
+        quantity:
+          type: number
+        notes:
+          type: ["string", "null"]
+        referenceType:
+          type: ["string", "null"]
+        referenceId:
+          type: ["string", "null"]
+        movementDate:
+          type: string
+      required:
+        - id
+        - productId
+        - productCode
+        - productName
+        - warehouseId
+        - warehouseName
+        - movementType
+        - quantity
+        - movementDate
+
+    CreateStockMovementBody:
+      type: object
+      properties:
+        productId:
+          type: string
+        warehouseId:
+          type: string
+        movementType:
+          type: string
+        quantity:
+          type: number
+        stockStatus:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        batchNumber:
+          type: ["string", "null"]
+      required: [productId, warehouseId, movementType, quantity]
+
+    # ── Stock Reservation ──────────────────────────────────────
+    StockReservation:
+      type: object
+      properties:
+        id:
+          type: string
+        salesOrderId:
+          type: string
+        salesOrderNumber:
+          type: ["string", "null"]
+        productId:
+          type: string
+        productName:
+          type: string
+        warehouseId:
+          type: string
+        quantity:
+          type: number
+        status:
+          type: string
+        reservationDate:
+          type: string
+      required:
+        - id
+        - salesOrderId
+        - productId
+        - productName
+        - warehouseId
+        - quantity
+        - status
+        - reservationDate
+
+    # ── BOM ────────────────────────────────────────────────────
+    BomHeader:
+      type: object
+      properties:
+        id:
+          type: string
+        parentProductId:
+          type: string
+        parentProductCode:
+          type: string
+        parentProductName:
+          type: string
+        version:
+          type: integer
+        description:
+          type: ["string", "null"]
+        active:
+          type: boolean
+        validFrom:
+          type: ["string", "null"]
+      required: [id, parentProductId, parentProductCode, parentProductName, version, active]
+
+    BomItem:
+      type: object
+      properties:
+        id:
+          type: string
+        bomHeaderId:
+          type: string
+        componentProductId:
+          type: string
+        componentProductCode:
+          type: string
+        componentProductName:
+          type: string
+        quantityPerParent:
+          type: number
+        scrapPercentage:
+          type: number
+        isMandatory:
+          type: boolean
+        notes:
+          type: ["string", "null"]
+      required:
+        - id
+        - bomHeaderId
+        - componentProductId
+        - componentProductCode
+        - componentProductName
+        - quantityPerParent
+        - scrapPercentage
+        - isMandatory
+
+    BomDetail:
+      type: object
+      properties:
+        header:
+          $ref: "#/components/schemas/BomHeader"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/BomItem"
+      required: [header, items]
+
+    CreateBomHeaderBody:
+      type: object
+      properties:
+        parentProductId:
+          type: string
+        version:
+          type: integer
+        description:
+          type: ["string", "null"]
+        validFrom:
+          type: ["string", "null"]
+      required: [parentProductId, version]
+
+    UpdateBomHeaderBody:
+      type: object
+      properties:
+        description:
+          type: ["string", "null"]
+        active:
+          type: ["boolean", "null"]
+        validFrom:
+          type: ["string", "null"]
+        validTo:
+          type: ["string", "null"]
+
+    CreateBomItemBody:
+      type: object
+      properties:
+        componentProductId:
+          type: string
+        quantityPerParent:
+          type: number
+        scrapPercentage:
+          type: number
+        isMandatory:
+          type: boolean
+        notes:
+          type: ["string", "null"]
+      required: [componentProductId, quantityPerParent, scrapPercentage, isMandatory]
+
+    UpdateBomItemBody:
+      type: object
+      properties:
+        quantityPerParent:
+          type: ["number", "null"]
+        scrapPercentage:
+          type: ["number", "null"]
+        isMandatory:
+          type: ["boolean", "null"]
+        notes:
+          type: ["string", "null"]
+
+    # ── Routing ────────────────────────────────────────────────
+    Routing:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        version:
+          type: integer
+        description:
+          type: ["string", "null"]
+        active:
+          type: boolean
+      required: [id, productId, productCode, productName, version, active]
+
+    RoutingOperation:
+      type: object
+      properties:
+        id:
+          type: string
+        routingId:
+          type: string
+        sequenceNumber:
+          type: integer
+        operationId:
+          type: string
+        operationName:
+          type: string
+        machineId:
+          type: ["string", "null"]
+        machineName:
+          type: ["string", "null"]
+        sectorId:
+          type: ["string", "null"]
+        sectorName:
+          type: ["string", "null"]
+        setupTimeMinutes:
+          type: number
+        standardTimeMinutes:
+          type: number
+        notes:
+          type: ["string", "null"]
+      required:
+        - id
+        - routingId
+        - sequenceNumber
+        - operationId
+        - operationName
+        - setupTimeMinutes
+        - standardTimeMinutes
+
+    RoutingDetail:
+      type: object
+      properties:
+        routing:
+          $ref: "#/components/schemas/Routing"
+        operations:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoutingOperation"
+      required: [routing, operations]
+
+    CreateRoutingBody:
+      type: object
+      properties:
+        productId:
+          type: string
+        version:
+          type: integer
+        description:
+          type: ["string", "null"]
+      required: [productId, version]
+
+    UpdateRoutingBody:
+      type: object
+      properties:
+        description:
+          type: ["string", "null"]
+        active:
+          type: ["boolean", "null"]
+
+    CreateRoutingOperationBody:
+      type: object
+      properties:
+        sequenceNumber:
+          type: integer
+        operationId:
+          type: string
+        machineId:
+          type: ["string", "null"]
+        sectorId:
+          type: ["string", "null"]
+        setupTimeMinutes:
+          type: number
+        standardTimeMinutes:
+          type: number
+        notes:
+          type: ["string", "null"]
+      required: [sequenceNumber, operationId, setupTimeMinutes, standardTimeMinutes]
+
+    UpdateRoutingOperationBody:
+      type: object
+      properties:
+        sequenceNumber:
+          type: ["integer", "null"]
+        operationId:
+          type: ["string", "null"]
+        machineId:
+          type: ["string", "null"]
+        sectorId:
+          type: ["string", "null"]
+        setupTimeMinutes:
+          type: ["number", "null"]
+        standardTimeMinutes:
+          type: ["number", "null"]
+        notes:
+          type: ["string", "null"]
+
+    # ── Sales Order ────────────────────────────────────────────
+    SalesOrder:
+      type: object
+      properties:
+        id:
+          type: string
+        orderNumber:
+          type: string
+        customerId:
+          type: string
+        customerName:
+          type: string
+        orderDate:
+          type: string
+        expectedDeliveryDate:
+          type: ["string", "null"]
+        status:
+          type: string
+        totalAmount:
+          type: number
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - orderNumber
+        - customerId
+        - customerName
+        - orderDate
+        - status
+        - totalAmount
+        - createdAt
+
+    SalesOrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+        salesOrderId:
+          type: string
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+        totalPrice:
+          type: number
+        availableAtOrderTime:
+          type: number
+        reservedQuantity:
+          type: number
+        deliveredQuantity:
+          type: number
+        status:
+          type: string
+      required:
+        - id
+        - salesOrderId
+        - productId
+        - productCode
+        - productName
+        - quantity
+        - unitPrice
+        - totalPrice
+        - availableAtOrderTime
+        - reservedQuantity
+        - deliveredQuantity
         - status
 
+    SalesOrderDetail:
+      type: object
+      properties:
+        order:
+          $ref: "#/components/schemas/SalesOrder"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SalesOrderItem"
+      required: [order, items]
+
+    CreateSalesOrderBody:
+      type: object
+      properties:
+        customerId:
+          type: string
+        orderDate:
+          type: string
+        expectedDeliveryDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+      required: [customerId, orderDate]
+
+    UpdateSalesOrderBody:
+      type: object
+      properties:
+        expectedDeliveryDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        status:
+          type: ["string", "null"]
+
+    CreateSalesOrderItemBody:
+      type: object
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+      required: [productId, quantity, unitPrice]
+
+    ShipSalesOrderBody:
+      type: object
+      properties:
+        notes:
+          type: ["string", "null"]
+
+    # ── Production Order ───────────────────────────────────────
+    ProductionOrder:
+      type: object
+      properties:
+        id:
+          type: string
+        orderNumber:
+          type: string
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        salesOrderId:
+          type: ["string", "null"]
+        quantityPlanned:
+          type: number
+        quantityProduced:
+          type: number
+        quantityRejected:
+          type: number
+        orderType:
+          type: string
+        status:
+          type: string
+        priority:
+          type: string
+        plannedStartDate:
+          type: ["string", "null"]
+        plannedEndDate:
+          type: ["string", "null"]
+        actualStartDate:
+          type: ["string", "null"]
+        actualEndDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        isDelayed:
+          type: boolean
+      required:
+        - id
+        - orderNumber
+        - productId
+        - productCode
+        - productName
+        - quantityPlanned
+        - quantityProduced
+        - quantityRejected
+        - orderType
+        - status
+        - priority
+        - createdAt
+        - isDelayed
+
+    ProductionOrderMaterial:
+      type: object
+      properties:
+        id:
+          type: string
+        productionOrderId:
+          type: string
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        requiredQuantity:
+          type: number
+        issuedQuantity:
+          type: number
+        consumedQuantity:
+          type: number
+        warehouseId:
+          type: ["string", "null"]
+        status:
+          type: string
+      required:
+        - id
+        - productionOrderId
+        - productId
+        - productCode
+        - productName
+        - requiredQuantity
+        - issuedQuantity
+        - consumedQuantity
+        - status
+
+    ProductionOrderOperation:
+      type: object
+      properties:
+        id:
+          type: string
+        productionOrderId:
+          type: string
+        sequenceNumber:
+          type: integer
+        operationId:
+          type: string
+        operationName:
+          type: string
+        machineId:
+          type: ["string", "null"]
+        machineName:
+          type: ["string", "null"]
+        plannedTimeMinutes:
+          type: ["number", "null"]
+        actualTimeMinutes:
+          type: ["number", "null"]
+        status:
+          type: string
+        startedAt:
+          type: ["string", "null"]
+        finishedAt:
+          type: ["string", "null"]
+      required:
+        - id
+        - productionOrderId
+        - sequenceNumber
+        - operationId
+        - operationName
+        - status
+
+    ProductionOrderDetail:
+      type: object
+      properties:
+        order:
+          $ref: "#/components/schemas/ProductionOrder"
+        materials:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductionOrderMaterial"
+        operations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductionOrderOperation"
+      required: [order, materials, operations]
+
+    ProductionAppointment:
+      type: object
+      properties:
+        id:
+          type: string
+        productionOrderId:
+          type: string
+        operationId:
+          type: ["string", "null"]
+        operationName:
+          type: ["string", "null"]
+        startTime:
+          type: string
+        endTime:
+          type: ["string", "null"]
+        quantityGood:
+          type: number
+        quantityRejected:
+          type: number
+        notes:
+          type: ["string", "null"]
+      required:
+        - id
+        - productionOrderId
+        - startTime
+        - quantityGood
+        - quantityRejected
+
+    CreateProductionOrderBody:
+      type: object
+      properties:
+        productId:
+          type: string
+        salesOrderId:
+          type: ["string", "null"]
+        quantityPlanned:
+          type: number
+        orderType:
+          type: string
+        priority:
+          type: string
+        plannedStartDate:
+          type: ["string", "null"]
+        plannedEndDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+      required: [productId, quantityPlanned, orderType, priority]
+
+    UpdateProductionOrderBody:
+      type: object
+      properties:
+        quantityPlanned:
+          type: ["number", "null"]
+        orderType:
+          type: ["string", "null"]
+        priority:
+          type: ["string", "null"]
+        status:
+          type: ["string", "null"]
+        plannedStartDate:
+          type: ["string", "null"]
+        plannedEndDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    FinishProductionOrderBody:
+      type: object
+      properties:
+        quantityProduced:
+          type: number
+        quantityRejected:
+          type: number
+        notes:
+          type: ["string", "null"]
+      required: [quantityProduced, quantityRejected]
+
+    CreateProductionAppointmentBody:
+      type: object
+      properties:
+        productionOrderOperationId:
+          type: ["string", "null"]
+        startTime:
+          type: string
+        endTime:
+          type: ["string", "null"]
+        quantityGood:
+          type: number
+        quantityRejected:
+          type: number
+        notes:
+          type: ["string", "null"]
+      required: [startTime, quantityGood, quantityRejected]
+
+    # ── Purchase Request ───────────────────────────────────────
+    PurchaseRequest:
+      type: object
+      properties:
+        id:
+          type: string
+        requestNumber:
+          type: string
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        quantity:
+          type: number
+        neededDate:
+          type: ["string", "null"]
+        source:
+          type: string
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - requestNumber
+        - productId
+        - productCode
+        - productName
+        - quantity
+        - source
+        - status
+        - createdAt
+
+    CreatePurchaseRequestBody:
+      type: object
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: number
+        neededDate:
+          type: ["string", "null"]
+        source:
+          type: string
+        notes:
+          type: ["string", "null"]
+      required: [productId, quantity, source]
+
+    UpdatePurchaseRequestBody:
+      type: object
+      properties:
+        quantity:
+          type: ["number", "null"]
+        neededDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    ConvertPurchaseRequestBody:
+      type: object
+      properties:
+        supplierId:
+          type: string
+        unitPrice:
+          type: number
+        expectedDate:
+          type: ["string", "null"]
+      required: [supplierId, unitPrice]
+
+    # ── Purchase Order ─────────────────────────────────────────
+    PurchaseOrder:
+      type: object
+      properties:
+        id:
+          type: string
+        orderNumber:
+          type: string
+        supplierId:
+          type: string
+        supplierName:
+          type: string
+        orderDate:
+          type: string
+        expectedDate:
+          type: ["string", "null"]
+        status:
+          type: string
+        totalAmount:
+          type: number
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - orderNumber
+        - supplierId
+        - supplierName
+        - orderDate
+        - status
+        - totalAmount
+        - createdAt
+
+    PurchaseOrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+        purchaseOrderId:
+          type: string
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        quantity:
+          type: number
+        receivedQuantity:
+          type: number
+        unitPrice:
+          type: number
+        totalPrice:
+          type: number
+      required:
+        - id
+        - purchaseOrderId
+        - productId
+        - productCode
+        - productName
+        - quantity
+        - receivedQuantity
+        - unitPrice
+        - totalPrice
+
+    PurchaseOrderDetail:
+      type: object
+      properties:
+        order:
+          $ref: "#/components/schemas/PurchaseOrder"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurchaseOrderItem"
+      required: [order, items]
+
+    CreatePurchaseOrderBody:
+      type: object
+      properties:
+        supplierId:
+          type: string
+        orderDate:
+          type: string
+        expectedDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurchaseOrderItemInput"
+      required: [supplierId, orderDate, items]
+
+    PurchaseOrderItemInput:
+      type: object
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: number
+        unitPrice:
+          type: number
+      required: [productId, quantity, unitPrice]
+
+    UpdatePurchaseOrderBody:
+      type: object
+      properties:
+        expectedDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        status:
+          type: ["string", "null"]
+
+    # ── Receipt ────────────────────────────────────────────────
+    Receipt:
+      type: object
+      properties:
+        id:
+          type: string
+        receiptNumber:
+          type: string
+        purchaseOrderId:
+          type: string
+        purchaseOrderNumber:
+          type: string
+        supplierName:
+          type: string
+        receiptDate:
+          type: string
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+      required:
+        - id
+        - receiptNumber
+        - purchaseOrderId
+        - purchaseOrderNumber
+        - supplierName
+        - receiptDate
+        - status
+
+    ReceiptItem:
+      type: object
+      properties:
+        id:
+          type: string
+        receiptId:
+          type: string
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        quantity:
+          type: number
+        warehouseId:
+          type: string
+        warehouseName:
+          type: string
+      required:
+        - id
+        - receiptId
+        - productId
+        - productCode
+        - productName
+        - quantity
+        - warehouseId
+        - warehouseName
+
+    ReceiptDetail:
+      type: object
+      properties:
+        receipt:
+          $ref: "#/components/schemas/Receipt"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReceiptItem"
+      required: [receipt, items]
+
+    CreateReceiptBody:
+      type: object
+      properties:
+        purchaseOrderId:
+          type: string
+        receiptDate:
+          type: string
+        notes:
+          type: ["string", "null"]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReceiptItemInput"
+      required: [purchaseOrderId, receiptDate, items]
+
+    ReceiptItemInput:
+      type: object
+      properties:
+        purchaseOrderItemId:
+          type: string
+        productId:
+          type: string
+        quantity:
+          type: number
+        warehouseId:
+          type: string
+      required: [purchaseOrderItemId, productId, quantity, warehouseId]
+
+    # ── Quality Inspection ─────────────────────────────────────
+    QualityInspection:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        productionOrderId:
+          type: ["string", "null"]
+        productionOrderNumber:
+          type: ["string", "null"]
+        inspectionDate:
+          type: string
+        inspectedQuantity:
+          type: number
+        approvedQuantity:
+          type: number
+        rejectedQuantity:
+          type: number
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+      required:
+        - id
+        - productId
+        - productCode
+        - productName
+        - inspectionDate
+        - inspectedQuantity
+        - approvedQuantity
+        - rejectedQuantity
+        - status
+
+    CreateQualityInspectionBody:
+      type: object
+      properties:
+        productId:
+          type: string
+        productionOrderId:
+          type: ["string", "null"]
+        inspectionDate:
+          type: string
+        inspectedQuantity:
+          type: number
+        approvedQuantity:
+          type: number
+        rejectedQuantity:
+          type: number
+        status:
+          type: string
+        notes:
+          type: ["string", "null"]
+      required:
+        - productId
+        - inspectionDate
+        - inspectedQuantity
+        - approvedQuantity
+        - rejectedQuantity
+        - status
+
+    UpdateQualityInspectionBody:
+      type: object
+      properties:
+        approvedQuantity:
+          type: ["number", "null"]
+        rejectedQuantity:
+          type: ["number", "null"]
+        status:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        scrapAction:
+          type: ["string", "null"]
+        reworkAction:
+          type: ["string", "null"]
+
+    # ── MRP ────────────────────────────────────────────────────
+    MrpRun:
+      type: object
+      properties:
+        id:
+          type: string
+        runNumber:
+          type: string
+        runDate:
+          type: string
+        status:
+          type: string
+        consideredSalesOrders:
+          type: boolean
+        consideredMinimumStock:
+          type: boolean
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - runNumber
+        - runDate
+        - status
+        - consideredSalesOrders
+        - consideredMinimumStock
+        - createdAt
+
+    MrpResult:
+      type: object
+      properties:
+        id:
+          type: string
+        mrpRunId:
+          type: string
+        productId:
+          type: string
+        productCode:
+          type: string
+        productName:
+          type: string
+        grossRequirement:
+          type: number
+        availableStock:
+          type: number
+        reservedStock:
+          type: number
+        openProductionQuantity:
+          type: number
+        openPurchaseQuantity:
+          type: number
+        netRequirement:
+          type: number
+        suggestedAction:
+          type: string
+        suggestedQuantity:
+          type: number
+        dueDate:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+      required:
+        - id
+        - mrpRunId
+        - productId
+        - productCode
+        - productName
+        - grossRequirement
+        - availableStock
+        - reservedStock
+        - openProductionQuantity
+        - openPurchaseQuantity
+        - netRequirement
+        - suggestedAction
+        - suggestedQuantity
+
+    MrpRunDetail:
+      type: object
+      properties:
+        run:
+          $ref: "#/components/schemas/MrpRun"
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/MrpResult"
+      required: [run, results]
+
+    MrpApproveResult:
+      type: object
+      properties:
+        productionOrdersCreated:
+          type: integer
+        purchaseRequestsCreated:
+          type: integer
+        message:
+          type: string
+      required: [productionOrdersCreated, purchaseRequestsCreated, message]
+
+    RunMrpBody:
+      type: object
+      properties:
+        consideredSalesOrders:
+          type: boolean
+        consideredMinimumStock:
+          type: boolean
+        notes:
+          type: ["string", "null"]
+      required: [consideredSalesOrders, consideredMinimumStock]

@@ -1,0 +1,1671 @@
+Usei a estrutura que você enviou como base para transformar em um **prompt único para o Lovable**, mantendo os módulos de estoque, vendas, PCP, MRP, produção, usinagem, montagem e compras. 
+
+Abaixo está o prompt pronto para copiar e colar no Lovable.
+
+```text
+Crie um sistema ERP web completo para uma empresa metalúrgica, usando React + TypeScript + Tailwind CSS + shadcn/ui no front-end e Supabase/PostgreSQL como banco de dados, autenticação e backend.
+
+O sistema deve ser chamado: ERP Metalúrgica PCP/MRP.
+
+Objetivo principal:
+Criar um ERP funcional para controlar estoque, vendas, PCP, MRP, produção, usinagem, montagem, compras, qualidade, máquinas, operações, clientes e fornecedores.
+
+O sistema deve permitir que a empresa controle produtos acabados, peças fundidas/brutas, peças usinadas, componentes comprados, matéria-prima, produtos em processo, ordens de produção, ordens de montagem, solicitações de compra e pedidos de venda.
+
+IMPORTANTE:
+O sistema precisa nascer funcional, com banco de dados bem estruturado, telas completas, CRUDs funcionando, regras de negócio aplicadas, dashboard, relatórios, alertas de estoque baixo, cálculo de disponibilidade, reserva de estoque, baixa automática de estoque na expedição e rotina de MRP básico.
+
+====================================================
+1. STACK OBRIGATÓRIA
+====================================================
+
+Use:
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- shadcn/ui
+- Lucide Icons
+- Supabase Auth
+- Supabase PostgreSQL
+- Supabase Row Level Security
+- React Hook Form
+- Zod para validações
+- TanStack Query para dados
+- XLSX para exportação Excel
+- Recharts para gráficos do dashboard
+
+O projeto deve ter layout moderno, responsivo, limpo e profissional, com menu lateral, cards, tabelas, filtros, botões de ação, badges de status e modais de cadastro.
+
+====================================================
+2. PERFIS DE USUÁRIO
+====================================================
+
+Criar autenticação com Supabase Auth.
+
+Perfis:
+
+1. Administrador
+   - Acesso total ao sistema.
+
+2. PCP
+   - Produtos, ficha técnica, roteiros, MRP, ordens de produção, planejamento.
+
+3. Vendas
+   - Clientes, pedidos de venda, consulta de estoque disponível, reserva de estoque.
+
+4. Estoque
+   - Estoque, movimentações, inventário, expedição, recebimentos.
+
+5. Compras
+   - Fornecedores, solicitações de compra, pedidos de compra, recebimentos.
+
+6. Produção
+   - Ordens de produção, apontamentos, operações, máquinas.
+
+7. Qualidade
+   - Inspeções, reprovações, retrabalho, sucata.
+
+Criar tabela profiles ligada ao auth.users.
+
+====================================================
+3. MENU PRINCIPAL DO SISTEMA
+====================================================
+
+Criar menu lateral com os seguintes módulos:
+
+1. Dashboard
+2. Cadastros
+   - Produtos
+   - Clientes
+   - Fornecedores
+   - Máquinas
+   - Operações
+   - Setores
+   - Usuários
+3. Engenharia
+   - Ficha Técnica
+   - Roteiro de Fabricação
+   - Revisões de Produto
+4. Estoque
+   - Consulta de Estoque
+   - Movimentações
+   - Reservas
+   - Inventário
+   - Estoque Mínimo
+5. Vendas
+   - Pedidos de Venda
+   - Consulta de Disponibilidade
+   - Expedição
+6. PCP / MRP
+   - Rodar MRP
+   - Necessidades de Produção
+   - Necessidades de Compra
+   - Planejamento Semanal
+   - Prioridades
+7. Produção
+   - Ordens de Produção
+   - Usinagem
+   - Montagem
+   - Apontamentos
+   - Consumo de Materiais
+8. Compras
+   - Solicitações de Compra
+   - Pedidos de Compra
+   - Recebimentos
+9. Qualidade
+   - Inspeção
+   - Reprovação
+   - Retrabalho
+   - Sucata
+10. Relatórios
+   - Estoque Baixo
+   - Produtos Mais Vendidos
+   - Produção Atrasada
+   - Consumo de Materiais
+   - Compras Pendentes
+
+====================================================
+4. BANCO DE DADOS SUPABASE
+====================================================
+
+Crie um banco de dados PostgreSQL excelente, normalizado e preparado para crescimento.
+
+Todas as tabelas devem ter:
+
+- id UUID primary key default gen_random_uuid()
+- created_at timestamptz default now()
+- updated_at timestamptz default now()
+- created_by uuid quando fizer sentido
+- company_id uuid para permitir multiempresa no futuro
+- status quando fizer sentido
+- índices nos campos mais consultados
+- foreign keys corretas
+- constraints para evitar dados inválidos
+
+Criar as seguintes tabelas:
+
+----------------------------------------------------
+4.1 companies
+----------------------------------------------------
+Campos:
+- id
+- name
+- trade_name
+- document
+- phone
+- email
+- address
+- city
+- state
+- active
+
+----------------------------------------------------
+4.2 profiles
+----------------------------------------------------
+Campos:
+- id
+- user_id references auth.users
+- company_id references companies
+- full_name
+- role enum: admin, pcp, vendas, estoque, compras, producao, qualidade
+- active
+
+----------------------------------------------------
+4.3 product_categories
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- name
+- description
+
+Categorias iniciais:
+- Produto Acabado
+- Semiacabado
+- Fundido/Bruto
+- Matéria-prima
+- Componente Comprado
+- Produto em Processo
+- Serviço
+
+----------------------------------------------------
+4.4 products
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- code unique
+- name
+- description
+- category_id
+- item_type enum:
+  produto_acabado,
+  semiacabado,
+  fundido_bruto,
+  materia_prima,
+  componente_comprado,
+  produto_em_processo,
+  servico
+- unit enum: peca, kg, metro, conjunto, litro, unidade
+- minimum_stock numeric
+- maximum_stock numeric
+- safety_stock numeric
+- lead_time_days integer
+- sale_price numeric
+- cost_price numeric
+- is_sellable boolean
+- is_manufactured boolean
+- is_purchased boolean
+- requires_machining boolean
+- requires_assembly boolean
+- active boolean
+- image_url
+
+Regras:
+- Produto acabado pode ser vendável.
+- Produto fundido/bruto não pode ser vendido como acabado.
+- Produto comprado deve ter is_purchased true.
+- Produto fabricado deve ter is_manufactured true.
+- Produto que precisa de usinagem deve ter requires_machining true.
+- Produto que precisa de montagem deve ter requires_assembly true.
+
+----------------------------------------------------
+4.5 warehouses
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- name
+- type enum: almoxarifado, usinagem, montagem, expedicao, qualidade, sucata
+- active
+
+----------------------------------------------------
+4.6 stock_statuses
+----------------------------------------------------
+Campos:
+- id
+- name
+- code
+
+Status iniciais:
+- disponivel
+- reservado
+- em_processo
+- aguardando_usinagem
+- aguardando_montagem
+- em_inspecao
+- reprovado
+- sucata
+
+----------------------------------------------------
+4.7 stock_balances
+----------------------------------------------------
+Tabela de saldo de estoque por produto, local e status.
+
+Campos:
+- id
+- company_id
+- product_id
+- warehouse_id
+- stock_status
+- batch_number
+- quantity numeric
+- reserved_quantity numeric
+- available_quantity generated ou calculado
+- last_movement_at
+
+Regra:
+available_quantity = quantity - reserved_quantity.
+Nunca permitir saldo negativo.
+
+----------------------------------------------------
+4.8 stock_movements
+----------------------------------------------------
+Histórico completo de movimentações.
+
+Campos:
+- id
+- company_id
+- product_id
+- warehouse_id
+- movement_type enum:
+  entrada_compra,
+  entrada_producao,
+  saida_producao,
+  saida_montagem,
+  entrada_produto_acabado,
+  reserva_venda,
+  baixa_venda,
+  ajuste_entrada,
+  ajuste_saida,
+  perda_sucata,
+  transferencia,
+  devolucao
+- quantity numeric
+- origin_status
+- destination_status
+- reference_type
+- reference_id
+- notes
+- movement_date
+- user_id
+
+Toda alteração de estoque deve gerar registro nessa tabela.
+
+----------------------------------------------------
+4.9 customers
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- name
+- document
+- email
+- phone
+- address
+- city
+- state
+- active
+
+----------------------------------------------------
+4.10 suppliers
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- name
+- document
+- email
+- phone
+- address
+- city
+- state
+- active
+
+----------------------------------------------------
+4.11 sales_orders
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- customer_id
+- order_number
+- order_date
+- expected_delivery_date
+- status enum:
+  rascunho,
+  aguardando_aprovacao,
+  aprovado,
+  reservado,
+  em_producao,
+  pronto_expedicao,
+  expedido,
+  faturado,
+  cancelado
+- total_amount
+- notes
+- created_by
+
+----------------------------------------------------
+4.12 sales_order_items
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- sales_order_id
+- product_id
+- quantity
+- unit_price
+- total_price
+- available_at_order_time
+- reserved_quantity
+- delivered_quantity
+- status enum:
+  pendente,
+  reservado,
+  falta_estoque,
+  em_producao,
+  pronto,
+  entregue,
+  cancelado
+
+Regra:
+Ao adicionar produto ao pedido de venda, mostrar estoque disponível antes de salvar.
+Se houver estoque disponível, permitir reservar.
+Se não houver, marcar como falta_estoque e permitir gerar necessidade via MRP.
+
+----------------------------------------------------
+4.13 stock_reservations
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- sales_order_id
+- sales_order_item_id
+- product_id
+- warehouse_id
+- quantity
+- status enum: ativa, consumida, cancelada
+- reservation_date
+
+Regra:
+A reserva reduz o disponível, mas não baixa o estoque físico.
+A baixa real acontece na expedição/faturamento.
+
+----------------------------------------------------
+4.14 shipments
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- sales_order_id
+- shipment_number
+- shipment_date
+- status enum: separado, expedido, cancelado
+- notes
+
+----------------------------------------------------
+4.15 shipment_items
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- shipment_id
+- product_id
+- quantity
+- sales_order_item_id
+
+Regra:
+Ao expedir, baixar estoque automaticamente e gerar movimento baixa_venda.
+
+----------------------------------------------------
+4.16 bom_headers
+----------------------------------------------------
+Ficha técnica cabeçalho.
+
+Campos:
+- id
+- company_id
+- parent_product_id
+- version
+- description
+- active
+- valid_from
+- valid_to
+
+----------------------------------------------------
+4.17 bom_items
+----------------------------------------------------
+Itens da ficha técnica.
+
+Campos:
+- id
+- company_id
+- bom_header_id
+- component_product_id
+- quantity_per_parent numeric
+- scrap_percentage numeric
+- is_mandatory boolean
+- notes
+
+Exemplo:
+Produto pai: Acoplamento L60 montado
+Componentes:
+- 2 Cubo L60 usinado
+- 1 Anel L60 usinado
+- 2 Flange L60 usinado
+- 1 Lona L60
+- 8 Parafuso M8
+- 8 Arruela M8
+- 8 Porca M8
+
+----------------------------------------------------
+4.18 routings
+----------------------------------------------------
+Roteiro de fabricação cabeçalho.
+
+Campos:
+- id
+- company_id
+- product_id
+- version
+- description
+- active
+
+----------------------------------------------------
+4.19 routing_operations
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- routing_id
+- sequence_number
+- operation_id
+- machine_id nullable
+- sector_id nullable
+- setup_time_minutes
+- standard_time_minutes
+- required_previous_operation boolean
+- result_status
+- notes
+
+----------------------------------------------------
+4.20 machines
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- code
+- name
+- type
+- sector_id
+- capacity_per_day
+- active
+- notes
+
+----------------------------------------------------
+4.21 operations
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- code
+- name
+- description
+- operation_type enum:
+  corte,
+  torno,
+  fresa,
+  furacao,
+  solda,
+  tratamento,
+  inspecao,
+  montagem,
+  embalagem,
+  outro
+- active
+
+----------------------------------------------------
+4.22 sectors
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- name
+- description
+- active
+
+Setores iniciais:
+- PCP
+- Vendas
+- Estoque
+- Compras
+- Produção
+- Usinagem
+- Montagem
+- Qualidade
+- Expedição
+
+----------------------------------------------------
+4.23 production_orders
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- order_number
+- product_id
+- sales_order_id nullable
+- quantity_planned
+- quantity_produced
+- quantity_rejected
+- order_type enum:
+  usinagem,
+  montagem,
+  fabricacao,
+  retrabalho
+- status enum:
+  planejada,
+  liberada,
+  em_producao,
+  pausada,
+  aguardando_material,
+  aguardando_maquina,
+  em_inspecao,
+  finalizada,
+  cancelada
+- priority enum: baixa, normal, alta, urgente
+- planned_start_date
+- planned_end_date
+- actual_start_date
+- actual_end_date
+- notes
+- created_by
+
+----------------------------------------------------
+4.24 production_order_materials
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- production_order_id
+- product_id
+- required_quantity
+- issued_quantity
+- consumed_quantity
+- warehouse_id
+- status enum:
+  pendente,
+  separado,
+  consumido,
+  falta_material
+
+----------------------------------------------------
+4.25 production_order_operations
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- production_order_id
+- sequence_number
+- operation_id
+- machine_id nullable
+- planned_time_minutes
+- actual_time_minutes
+- status enum:
+  pendente,
+  liberada,
+  em_execucao,
+  pausada,
+  concluida,
+  cancelada
+- started_at
+- finished_at
+- operator_id nullable
+- notes
+
+----------------------------------------------------
+4.26 production_appointments
+----------------------------------------------------
+Apontamento de produção.
+
+Campos:
+- id
+- company_id
+- production_order_id
+- production_order_operation_id
+- operator_id
+- start_time
+- end_time
+- quantity_good
+- quantity_rejected
+- notes
+
+----------------------------------------------------
+4.27 purchase_requests
+----------------------------------------------------
+Solicitações de compra geradas manualmente ou pelo MRP.
+
+Campos:
+- id
+- company_id
+- request_number
+- product_id
+- quantity
+- needed_date
+- source enum: manual, mrp, estoque_minimo, producao
+- status enum:
+  aberta,
+  aprovada,
+  convertida_pedido,
+  cancelada
+- notes
+
+----------------------------------------------------
+4.28 purchase_orders
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- supplier_id
+- order_number
+- order_date
+- expected_date
+- status enum:
+  aberto,
+  enviado,
+  recebido_parcial,
+  recebido_total,
+  cancelado
+- total_amount
+- notes
+
+----------------------------------------------------
+4.29 purchase_order_items
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- purchase_order_id
+- product_id
+- quantity
+- received_quantity
+- unit_price
+- total_price
+
+----------------------------------------------------
+4.30 receipts
+----------------------------------------------------
+Recebimento de compras.
+
+Campos:
+- id
+- company_id
+- purchase_order_id
+- receipt_number
+- receipt_date
+- status enum: recebido, cancelado
+- notes
+
+----------------------------------------------------
+4.31 receipt_items
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- receipt_id
+- product_id
+- quantity
+- warehouse_id
+
+Regra:
+Ao receber compra, dar entrada automática no estoque e gerar movimento entrada_compra.
+
+----------------------------------------------------
+4.32 quality_inspections
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- product_id
+- production_order_id nullable
+- inspection_date
+- inspected_quantity
+- approved_quantity
+- rejected_quantity
+- status enum: aprovado, reprovado_parcial, reprovado_total
+- notes
+
+----------------------------------------------------
+4.33 mrp_runs
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- run_number
+- run_date
+- status enum: calculado, aprovado, cancelado
+- considered_sales_orders boolean
+- considered_minimum_stock boolean
+- notes
+- created_by
+
+----------------------------------------------------
+4.34 mrp_results
+----------------------------------------------------
+Campos:
+- id
+- company_id
+- mrp_run_id
+- product_id
+- gross_requirement
+- available_stock
+- reserved_stock
+- open_production_quantity
+- open_purchase_quantity
+- net_requirement
+- suggested_action enum:
+  usar_estoque,
+  montar,
+  usinar,
+  fabricar,
+  comprar,
+  fundir_comprar,
+  sem_acao
+- suggested_quantity
+- due_date
+- source_reference
+- notes
+
+====================================================
+5. FUNÇÕES E REGRAS DE NEGÓCIO
+====================================================
+
+Criar funções no código para:
+
+----------------------------------------------------
+5.1 Cálculo de estoque disponível
+----------------------------------------------------
+
+Disponível para venda =
+estoque com status disponível em local de produto acabado
+- quantidade reservada.
+
+Não considerar:
+- produto em processo
+- produto reprovado
+- sucata
+- aguardando usinagem
+- em inspeção
+
+----------------------------------------------------
+5.2 Pedido de venda
+----------------------------------------------------
+
+Na tela de pedido de venda:
+
+- permitir selecionar cliente
+- adicionar produtos
+- mostrar estoque disponível antes de vender
+- mostrar estoque total, reservado e disponível
+- mostrar alerta se estoque estiver abaixo do mínimo
+- se houver estoque disponível, botão "Reservar estoque"
+- se não houver, botão "Enviar para MRP"
+- status do item deve indicar:
+  disponível,
+  reservado,
+  falta estoque,
+  precisa produzir,
+  precisa comprar
+
+Quando reservar:
+- criar registro em stock_reservations
+- atualizar reserved_quantity em stock_balances
+- criar stock_movement tipo reserva_venda
+
+Quando expedir:
+- baixar estoque real
+- consumir reserva
+- criar shipment
+- criar stock_movement tipo baixa_venda
+- alterar status do pedido para expedido ou faturado
+
+----------------------------------------------------
+5.3 Controle de estoque
+----------------------------------------------------
+
+Criar tela para:
+
+- consultar saldo por produto
+- consultar saldo por local
+- consultar saldo por status
+- consultar reservado
+- consultar disponível
+- fazer ajuste de estoque
+- transferir entre locais
+- exportar Excel
+- mostrar produtos abaixo do estoque mínimo
+
+Toda alteração de estoque deve gerar movimento.
+
+----------------------------------------------------
+5.4 Alerta de estoque baixo
+----------------------------------------------------
+
+No dashboard e no módulo de estoque, mostrar produtos com:
+
+available_quantity <= minimum_stock
+
+Separar ação sugerida:
+- se is_purchased = true: Comprar
+- se requires_machining = true: Usinar
+- se requires_assembly = true: Montar
+- se is_manufactured = true: Produzir
+- se item_type = fundido_bruto: Comprar/Fundir
+
+----------------------------------------------------
+5.5 Ficha técnica
+----------------------------------------------------
+
+Criar tela para:
+
+- cadastrar ficha técnica do produto pai
+- adicionar componentes
+- quantidade por conjunto
+- percentual de perda
+- componente obrigatório
+- versão da ficha técnica
+- ativar/inativar versão
+
+Mostrar visualmente a composição do produto.
+
+Exemplo obrigatório a ser criado como dados iniciais:
+
+Produto acabado:
+PA-ACL60 - Acoplamento L60 montado
+
+Componentes:
+- USI-CUBO-L60 - Cubo L60 usinado - quantidade 2
+- USI-ANEL-L60 - Anel L60 usinado - quantidade 1
+- USI-FLANGE-L60 - Flange L60 usinado - quantidade 2
+- COMP-LONA-L60 - Lona L60 - quantidade 1
+- COMP-PAR-M8 - Parafuso M8 - quantidade 8
+- COMP-ARR-M8 - Arruela M8 - quantidade 8
+- COMP-POR-M8 - Porca M8 - quantidade 8
+
+----------------------------------------------------
+5.6 Roteiro de fabricação
+----------------------------------------------------
+
+Criar tela para:
+
+- cadastrar roteiro por produto
+- cadastrar sequência de operações
+- vincular máquina
+- vincular setor
+- tempo padrão
+- tempo de setup
+- resultado esperado
+
+Exemplo para Cubo L60:
+1. Separar fundido - Almoxarifado - 5 min
+2. Tornear - Torno - 30 min
+3. Furar - Furadeira - 15 min
+4. Inspecionar - Qualidade - 5 min
+5. Liberar para montagem - Estoque - 2 min
+
+Exemplo para Acoplamento L60:
+1. Separar componentes
+2. Montagem
+3. Inspeção final
+4. Entrada em estoque acabado
+
+----------------------------------------------------
+5.7 MRP básico
+----------------------------------------------------
+
+Criar tela "Rodar MRP".
+
+O MRP deve considerar:
+
+- pedidos de venda aprovados e não atendidos
+- estoque mínimo
+- estoque disponível
+- estoque reservado
+- ordens de produção abertas
+- pedidos de compra abertos
+- ficha técnica dos produtos
+- lead time do produto
+
+Fórmula:
+
+necessidade_liquida =
+pedidos de venda pendentes
++ estoque mínimo
+- estoque disponível
+- quantidade em ordens de produção abertas
+- quantidade em pedidos de compra abertos
+
+Se necessidade_liquida <= 0:
+ação sugerida = usar_estoque ou sem_acao
+
+Se produto for comprado:
+ação sugerida = comprar
+
+Se produto for acabado e houver componentes disponíveis:
+ação sugerida = montar
+
+Se produto for acabado e faltar componente:
+explodir ficha técnica e calcular necessidade dos componentes
+
+Se componente for usinado e houver fundido/bruto disponível:
+ação sugerida = usinar
+
+Se componente for usinado e não houver fundido/bruto:
+ação sugerida = fundir_comprar
+
+Se componente for comprado:
+ação sugerida = comprar
+
+O resultado do MRP deve aparecer em tabela com:
+
+- produto
+- necessidade bruta
+- estoque disponível
+- estoque reservado
+- ordens abertas
+- compras abertas
+- necessidade líquida
+- ação sugerida
+- quantidade sugerida
+- data necessária
+- botão para gerar OP
+- botão para gerar solicitação de compra
+
+A tela deve permitir aprovar o MRP e gerar automaticamente:
+
+- ordens de produção para itens a fabricar, montar ou usinar
+- solicitações de compra para itens comprados ou fundidos/brutos faltantes
+
+----------------------------------------------------
+5.8 Ordens de produção
+----------------------------------------------------
+
+Criar tela para:
+
+- listar OPs
+- criar OP manual
+- criar OP a partir do MRP
+- informar produto
+- quantidade planejada
+- tipo da OP: usinagem, montagem, fabricação, retrabalho
+- status
+- prioridade
+- data planejada
+- materiais necessários
+- operações necessárias
+- apontamentos
+
+Ao criar OP a partir de produto com ficha técnica:
+- preencher materiais automaticamente.
+
+Ao criar OP a partir de produto com roteiro:
+- preencher operações automaticamente.
+
+Fluxo da OP:
+Planejada → Liberada → Em Produção → Em Inspeção → Finalizada
+
+Se faltar material:
+status = aguardando_material.
+
+Ao finalizar OP:
+- dar entrada do produto produzido no estoque
+- gerar movimento entrada_producao ou entrada_produto_acabado
+- baixar materiais consumidos
+- gerar movimentos de saída_producao ou saída_montagem
+
+----------------------------------------------------
+5.9 Compras
+----------------------------------------------------
+
+Criar tela para:
+
+- solicitações de compra
+- aprovar solicitação
+- converter solicitação em pedido de compra
+- selecionar fornecedor
+- receber pedido de compra
+- entrada automática no estoque
+
+Ao receber:
+- atualizar received_quantity
+- atualizar estoque
+- gerar stock_movement entrada_compra
+- se pedido recebido total, status = recebido_total
+- se parcial, status = recebido_parcial
+
+----------------------------------------------------
+5.10 Qualidade
+----------------------------------------------------
+
+Criar tela para:
+
+- inspeção de produção
+- aprovar quantidade
+- reprovar quantidade
+- enviar para retrabalho
+- enviar para sucata
+
+Se aprovado:
+- liberar para estoque disponível.
+
+Se reprovado:
+- mover para status reprovado.
+
+Se sucata:
+- mover para status sucata e gerar movimento perda_sucata.
+
+Se retrabalho:
+- gerar OP de retrabalho.
+
+====================================================
+6. DASHBOARD
+====================================================
+
+Criar dashboard com cards:
+
+- Pedidos de venda em aberto
+- Produtos com estoque baixo
+- Ordens de produção atrasadas
+- Compras pendentes
+- Produtos acabados disponíveis
+- Peças em usinagem
+- Montagens pendentes
+- Solicitações de compra abertas
+
+Criar gráficos:
+
+- pedidos por status
+- estoque por categoria
+- produção por status
+- compras pendentes por fornecedor
+- produtos abaixo do mínimo
+
+Criar lista rápida:
+
+- Top 10 produtos com menor estoque
+- Top 10 OPs atrasadas
+- Últimos movimentos de estoque
+- Últimos pedidos de venda
+
+====================================================
+7. TELAS E COMPONENTES
+====================================================
+
+Todas as telas devem ter:
+
+- título
+- botão Novo
+- busca
+- filtros
+- tabela
+- paginação
+- botão editar
+- botão excluir/inativar
+- botão visualizar detalhes
+- exportar Excel quando fizer sentido
+- feedback de sucesso/erro com toast
+- validação de formulário
+- confirmação antes de excluir/cancelar
+- badges coloridos para status
+
+Componentes reutilizáveis:
+
+- AppLayout
+- Sidebar
+- Topbar
+- DataTable
+- StatusBadge
+- FormDialog
+- ConfirmDialog
+- ProductSelector
+- CustomerSelector
+- SupplierSelector
+- StockAvailabilityCard
+- LowStockAlert
+- ExportExcelButton
+- MoneyInput
+- QuantityInput
+- DateInput
+
+====================================================
+8. DADOS INICIAIS PARA DEMONSTRAÇÃO
+====================================================
+
+Criar seed com dados iniciais.
+
+Empresa:
+- Invel Metalúrgica
+
+Setores:
+- PCP
+- Vendas
+- Estoque
+- Compras
+- Produção
+- Usinagem
+- Montagem
+- Qualidade
+- Expedição
+
+Locais de estoque:
+- Almoxarifado
+- Usinagem
+- Montagem
+- Qualidade
+- Expedição
+- Sucata
+
+Máquinas:
+- Torno CNC 01
+- Torno Convencional 01
+- Furadeira 01
+- Centro de Usinagem 01
+- Bancada de Montagem 01
+
+Operações:
+- Separar Material
+- Tornear
+- Furar
+- Fresar
+- Inspecionar
+- Montar
+- Embalar
+- Liberar Estoque
+
+Produtos:
+1. PA-ACL60 - Acoplamento L60 montado
+   tipo: produto_acabado
+   vendável: sim
+   fabricável: sim
+   comprado: não
+   requer montagem: sim
+   estoque mínimo: 5
+
+2. USI-CUBO-L60 - Cubo L60 usinado
+   tipo: semiacabado
+   vendável: não
+   fabricável: sim
+   requer usinagem: sim
+   estoque mínimo: 10
+
+3. FUN-CUBO-L60 - Cubo L60 fundido
+   tipo: fundido_bruto
+   vendável: não
+   comprado: sim
+   requer usinagem: sim
+   estoque mínimo: 20
+
+4. USI-ANEL-L60 - Anel L60 usinado
+   tipo: semiacabado
+   fabricável: sim
+   estoque mínimo: 10
+
+5. USI-FLANGE-L60 - Flange L60 usinado
+   tipo: semiacabado
+   fabricável: sim
+   estoque mínimo: 10
+
+6. FUN-FLANGE-L60 - Flange L60 fundido
+   tipo: fundido_bruto
+   comprado: sim
+   estoque mínimo: 20
+
+7. COMP-LONA-L60 - Lona L60
+   tipo: componente_comprado
+   comprado: sim
+   estoque mínimo: 10
+
+8. COMP-PAR-M8 - Parafuso M8
+   tipo: componente_comprado
+   comprado: sim
+   estoque mínimo: 100
+
+9. COMP-ARR-M8 - Arruela M8
+   tipo: componente_comprado
+   comprado: sim
+   estoque mínimo: 100
+
+10. COMP-POR-M8 - Porca M8
+    tipo: componente_comprado
+    comprado: sim
+    estoque mínimo: 100
+
+Estoque inicial:
+- Acoplamento L60 montado: 3 disponíveis
+- Cubo L60 usinado: 12 disponíveis
+- Cubo L60 fundido: 20 disponíveis
+- Anel L60 usinado: 10 disponíveis
+- Flange L60 usinado: 8 disponíveis
+- Flange L60 fundido: 15 disponíveis
+- Lona L60: 4 disponíveis
+- Parafuso M8: 40 disponíveis
+- Arruela M8: 60 disponíveis
+- Porca M8: 90 disponíveis
+
+Cliente inicial:
+- Cliente Demonstração
+
+Fornecedor inicial:
+- Fornecedor Metalúrgico Demonstração
+
+Criar ficha técnica do Acoplamento L60:
+- 2 Cubo L60 usinado
+- 1 Anel L60 usinado
+- 2 Flange L60 usinado
+- 1 Lona L60
+- 8 Parafuso M8
+- 8 Arruela M8
+- 8 Porca M8
+
+Criar roteiro do Cubo L60:
+1. Separar fundido
+2. Tornear
+3. Furar
+4. Inspecionar
+5. Liberar para montagem
+
+Criar roteiro do Acoplamento L60:
+1. Separar componentes
+2. Montar
+3. Inspecionar
+4. Entrada em estoque acabado
+
+====================================================
+9. REGRAS ESPECÍFICAS DO ACOPLAMENTO L60
+====================================================
+
+Quando vender Acoplamento L60:
+
+1. Verificar estoque acabado PA-ACL60.
+2. Se houver disponível:
+   - permitir reservar.
+3. Se não houver disponível:
+   - verificar componentes da ficha técnica.
+4. Para montar 1 Acoplamento L60 precisa:
+   - 2 Cubos L60 usinados
+   - 1 Anel L60 usinado
+   - 2 Flanges L60 usinados
+   - 1 Lona L60
+   - 8 Parafusos M8
+   - 8 Arruelas M8
+   - 8 Porcas M8
+5. Se todos os componentes estiverem disponíveis:
+   - gerar OP de montagem.
+6. Se faltar Cubo L60 usinado:
+   - verificar Cubo L60 fundido.
+   - se tiver fundido, gerar OP de usinagem.
+   - se não tiver, gerar solicitação de compra/fundição.
+7. Se faltar Flange L60 usinado:
+   - verificar Flange L60 fundido.
+   - se tiver fundido, gerar OP de usinagem.
+   - se não tiver, gerar solicitação de compra/fundição.
+8. Se faltar Lona, Parafuso, Arruela ou Porca:
+   - gerar solicitação de compra.
+9. Quando a OP de montagem finalizar:
+   - dar entrada no estoque de produto acabado.
+10. Quando expedir:
+   - baixar estoque acabado.
+
+====================================================
+10. EXPORTAÇÃO PARA EXCEL
+====================================================
+
+Implementar exportação Excel em:
+
+- produtos
+- estoque
+- movimentos de estoque
+- pedidos de venda
+- ordens de produção
+- solicitações de compra
+- resultados do MRP
+- estoque baixo
+- produção atrasada
+
+O Excel deve sair formatado com:
+
+- cabeçalho
+- filtros
+- data de geração
+- nome da empresa
+- colunas organizadas
+- valores numéricos formatados
+
+====================================================
+11. RELATÓRIOS
+====================================================
+
+Criar relatórios:
+
+1. Estoque baixo
+   - produto
+   - código
+   - estoque atual
+   - reservado
+   - disponível
+   - estoque mínimo
+   - ação sugerida
+
+2. Produtos mais vendidos
+   - período
+   - produto
+   - quantidade vendida
+   - valor total
+
+3. Produção atrasada
+   - OP
+   - produto
+   - quantidade
+   - data planejada
+   - atraso em dias
+   - status
+
+4. Consumo de materiais
+   - produto
+   - quantidade consumida
+   - OP
+   - período
+
+5. Compras pendentes
+   - solicitação
+   - produto
+   - quantidade
+   - fornecedor
+   - data necessária
+   - status
+
+====================================================
+12. VALIDAÇÕES IMPORTANTES
+====================================================
+
+- Não permitir saldo negativo.
+- Não permitir venda de item não vendável.
+- Não permitir reservar mais do que disponível.
+- Não permitir expedir produto sem reserva ou disponibilidade.
+- Não permitir finalizar OP sem informar quantidade produzida.
+- Não permitir montagem se faltar componente obrigatório.
+- Não permitir produto acabado sem ficha técnica quando for fabricado/montado.
+- Não permitir OP de usinagem sem material bruto quando o item exigir usinagem.
+- Não permitir excluir cadastros usados em movimentações; apenas inativar.
+- Todos os campos obrigatórios devem ter validação.
+- Toda operação crítica deve ter confirmação.
+
+====================================================
+13. EXPERIÊNCIA VISUAL
+====================================================
+
+A interface deve ser moderna e profissional.
+
+Usar:
+
+- cards com sombra leve
+- tabelas limpas
+- badges coloridos
+- sidebar fixa
+- dashboard visual
+- botões claros
+- formulários organizados por seções
+- telas responsivas
+- cores sóbrias para ambiente industrial
+
+Sugestão de cores:
+- azul escuro para navegação
+- cinza claro para fundo
+- verde para disponível/aprovado
+- amarelo para atenção
+- vermelho para falta/reprovado/atraso
+- roxo ou azul para MRP/PCP
+
+====================================================
+14. FLUXOS PRINCIPAIS QUE DEVEM FUNCIONAR
+====================================================
+
+Fluxo 1: Cadastro de produto
+- cadastrar produto
+- definir tipo
+- estoque mínimo
+- se é vendável, comprado ou fabricado
+
+Fluxo 2: Cadastro de ficha técnica
+- selecionar produto pai
+- adicionar componentes
+- salvar versão
+
+Fluxo 3: Entrada de estoque
+- selecionar produto
+- local
+- status
+- quantidade
+- gerar movimento
+
+Fluxo 4: Pedido de venda
+- selecionar cliente
+- adicionar produto
+- consultar disponibilidade
+- reservar estoque
+- acompanhar status
+
+Fluxo 5: Expedição
+- selecionar pedido
+- confirmar separação
+- baixar estoque
+- marcar como expedido
+
+Fluxo 6: Rodar MRP
+- calcular necessidades
+- listar faltas
+- sugerir comprar, fabricar, usinar ou montar
+- gerar OPs e solicitações de compra
+
+Fluxo 7: Produção
+- abrir OP
+- separar materiais
+- executar operações
+- apontar produção
+- finalizar OP
+- dar entrada no estoque
+
+Fluxo 8: Compras
+- criar solicitação
+- converter em pedido
+- receber material
+- dar entrada no estoque
+
+Fluxo 9: Qualidade
+- inspecionar produto
+- aprovar
+- reprovar
+- mandar para retrabalho
+- mandar para sucata
+
+====================================================
+15. PÁGINAS OBRIGATÓRIAS
+====================================================
+
+Criar as páginas:
+
+- /dashboard
+- /produtos
+- /clientes
+- /fornecedores
+- /maquinas
+- /operacoes
+- /setores
+- /ficha-tecnica
+- /roteiros
+- /estoque
+- /estoque/movimentacoes
+- /estoque/reservas
+- /vendas/pedidos
+- /vendas/disponibilidade
+- /vendas/expedicao
+- /pcp/mrp
+- /pcp/necessidades-producao
+- /pcp/necessidades-compra
+- /producao/ordens
+- /producao/usinagem
+- /producao/montagem
+- /producao/apontamentos
+- /compras/solicitacoes
+- /compras/pedidos
+- /compras/recebimentos
+- /qualidade/inspecoes
+- /relatorios/estoque-baixo
+- /relatorios/producao-atrasada
+- /relatorios/compras-pendentes
+
+====================================================
+16. BANCO DE DADOS: CRIAR MIGRATIONS
+====================================================
+
+Crie as migrations SQL completas no Supabase com:
+
+- enums
+- tabelas
+- foreign keys
+- indexes
+- triggers updated_at
+- policies RLS
+- seed inicial
+- funções SQL úteis para estoque disponível
+- views para dashboard
+
+Criar views:
+
+1. vw_stock_available
+   - produto
+   - estoque total
+   - reservado
+   - disponível
+   - status
+   - local
+
+2. vw_low_stock
+   - produtos abaixo do mínimo
+
+3. vw_sales_order_status
+   - pedidos por status
+
+4. vw_production_order_status
+   - OPs por status
+
+5. vw_pending_purchases
+   - compras pendentes
+
+6. vw_mrp_base_demand
+   - base de demanda para MRP
+
+====================================================
+17. SEGURANÇA E RLS
+====================================================
+
+Ativar RLS em todas as tabelas.
+
+Regra geral:
+Usuário só pode ver dados da própria company_id.
+
+Admins podem tudo dentro da empresa.
+
+Perfis por setor:
+- vendas pode criar e consultar pedidos de venda, clientes e disponibilidade
+- estoque pode mexer em estoque, reservas, expedição e recebimentos
+- pcp pode rodar MRP, criar OP, ver produtos, ficha técnica e estoque
+- compras pode mexer em fornecedores, solicitações, pedidos e recebimentos
+- produção pode ver e apontar OP
+- qualidade pode ver inspeções e alterar status de qualidade
+
+====================================================
+18. RESULTADO ESPERADO
+====================================================
+
+Ao finalizar, o sistema deve permitir:
+
+- cadastrar produtos completos
+- controlar estoque por local e status
+- consultar disponibilidade para venda
+- criar pedido de venda
+- reservar estoque automaticamente
+- baixar estoque na expedição
+- gerar alerta de estoque baixo
+- cadastrar ficha técnica
+- cadastrar roteiro de fabricação
+- rodar MRP
+- gerar ordens de produção
+- gerar solicitações de compra
+- controlar usinagem
+- controlar montagem
+- apontar produção
+- receber compras
+- exportar Excel
+- visualizar dashboard
+- consultar relatórios
+
+Não deixe telas sem função.
+Não crie apenas layout estático.
+Todas as telas principais devem estar conectadas ao Supabase.
+Todos os botões principais devem executar ações reais.
+Onde uma regra ainda for complexa, implemente a melhor versão funcional possível e deixe comentários no código.
+
+====================================================
+19. CRITÉRIOS DE ACEITAÇÃO
+====================================================
+
+O projeto só estará correto se:
+
+1. O usuário conseguir fazer login.
+2. O usuário conseguir cadastrar produto.
+3. O usuário conseguir lançar estoque.
+4. O usuário conseguir ver estoque disponível.
+5. O usuário conseguir criar pedido de venda.
+6. O sistema mostrar disponibilidade antes da venda.
+7. O sistema conseguir reservar estoque.
+8. O sistema conseguir baixar estoque na expedição.
+9. O sistema mostrar alerta de estoque baixo.
+10. O usuário conseguir cadastrar ficha técnica.
+11. O usuário conseguir cadastrar roteiro.
+12. O usuário conseguir rodar MRP.
+13. O MRP gerar necessidade de compra, usinagem, fabricação ou montagem.
+14. O usuário conseguir gerar OP pelo MRP.
+15. O usuário conseguir gerar solicitação de compra pelo MRP.
+16. O usuário conseguir finalizar OP e dar entrada no estoque.
+17. O usuário conseguir receber compra e dar entrada no estoque.
+18. O dashboard mostrar dados reais.
+19. Os relatórios funcionarem.
+20. Exportação Excel funcionar.
+
+Crie tudo isso com código limpo, organizado, componentes reutilizáveis e banco de dados robusto.
+```
+
+Uma observação importante: nenhum prompt garante que o Lovable entregue um ERP industrial 100% perfeito de primeira, porque é um sistema grande. Mas esse prompt já direciona o Lovable para criar uma versão bem completa, com banco Supabase, regras de estoque, vendas, MRP, produção, compras e relatórios funcionando.
