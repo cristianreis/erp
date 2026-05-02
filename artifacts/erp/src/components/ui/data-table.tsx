@@ -3,7 +3,6 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 
 interface Column<T> {
@@ -19,6 +18,7 @@ interface DataTableProps<T> {
   onSearch?: (value: string) => void;
   searchPlaceholder?: string;
   actions?: (row: T) => React.ReactNode;
+  onRowClick?: (row: T) => void;
   isLoading?: boolean;
   emptyMessage?: string;
 }
@@ -29,6 +29,7 @@ export function DataTable<T extends Record<string, any>>({
   onSearch,
   searchPlaceholder = "Pesquisar...",
   actions,
+  onRowClick,
   isLoading,
   emptyMessage = "Nenhum registro encontrado.",
 }: DataTableProps<T>) {
@@ -82,7 +83,11 @@ export function DataTable<T extends Record<string, any>>({
               </TableRow>
             ) : (
               data.map((row, i) => (
-                <TableRow key={row.id ?? i}>
+                <TableRow
+                  key={row.id ?? i}
+                  onClick={() => onRowClick?.(row)}
+                  className={onRowClick ? "cursor-pointer hover:bg-muted/60 transition-colors" : ""}
+                >
                   {columns.map(col => (
                     <TableCell key={String(col.key)} className={col.className}>
                       {col.render ? col.render(row) : row[col.key as string]}
