@@ -14,8 +14,13 @@ import Machines from "@/pages/machines";
 import Operations from "@/pages/operations";
 import StockBalances from "@/pages/stock/balances";
 import StockMovements from "@/pages/stock/movements";
+import StockReservations from "@/pages/stock/reservations";
 import SalesOrders from "@/pages/sales/orders";
+import StockAvailability from "@/pages/sales/availability";
+import Shipping from "@/pages/sales/shipping";
 import ProductionOrders from "@/pages/production/orders";
+import ProductionAppointments from "@/pages/production/appointments";
+import { ProductionQueue } from "@/pages/production/queue";
 import BomPage from "@/pages/engineering/bom";
 import Routings from "@/pages/engineering/routings";
 import PurchaseRequests from "@/pages/purchasing/requests";
@@ -23,15 +28,11 @@ import PurchaseOrders from "@/pages/purchasing/orders";
 import Receipts from "@/pages/purchasing/receipts";
 import QualityInspections from "@/pages/quality/inspections";
 import MrpPage from "@/pages/pcp/mrp";
-
-const Placeholder = ({ title }: { title: string }) => (
-  <div className="flex flex-col gap-4">
-    <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-    <div className="p-8 border rounded-md bg-card text-muted-foreground flex items-center justify-center">
-      Em desenvolvimento...
-    </div>
-  </div>
-);
+import ProductionNeeds from "@/pages/pcp/production-needs";
+import PurchaseNeeds from "@/pages/pcp/purchase-needs";
+import LowStockReport from "@/pages/reports/low-stock";
+import DelayedProductionReport from "@/pages/reports/delayed-production";
+import PendingPurchasesReport from "@/pages/reports/pending-purchases";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -61,20 +62,20 @@ function Router() {
 
         <Route path="/estoque" component={StockBalances} />
         <Route path="/estoque/movimentacoes" component={StockMovements} />
-        <Route path="/estoque/reservas" component={() => <Placeholder title="Reservas de Estoque" />} />
+        <Route path="/estoque/reservas" component={StockReservations} />
 
         <Route path="/vendas/pedidos" component={SalesOrders} />
-        <Route path="/vendas/disponibilidade" component={() => <Placeholder title="Disponibilidade" />} />
-        <Route path="/vendas/expedicao" component={() => <Placeholder title="Expedição" />} />
+        <Route path="/vendas/disponibilidade" component={StockAvailability} />
+        <Route path="/vendas/expedicao" component={Shipping} />
 
         <Route path="/pcp/mrp" component={MrpPage} />
-        <Route path="/pcp/necessidades-producao" component={() => <Placeholder title="Necessidades de Produção" />} />
-        <Route path="/pcp/necessidades-compra" component={() => <Placeholder title="Necessidades de Compra" />} />
+        <Route path="/pcp/necessidades-producao" component={ProductionNeeds} />
+        <Route path="/pcp/necessidades-compra" component={PurchaseNeeds} />
 
         <Route path="/producao/ordens" component={ProductionOrders} />
-        <Route path="/producao/usinagem" component={() => <Placeholder title="Fila de Usinagem" />} />
-        <Route path="/producao/montagem" component={() => <Placeholder title="Fila de Montagem" />} />
-        <Route path="/producao/apontamentos" component={() => <Placeholder title="Apontamentos de Produção" />} />
+        <Route path="/producao/usinagem" component={() => <ProductionQueue orderType="usinagem" title="Fila de Usinagem" description="Ordens de produção do tipo usinagem em andamento." />} />
+        <Route path="/producao/montagem" component={() => <ProductionQueue orderType="montagem" title="Fila de Montagem" description="Ordens de produção do tipo montagem em andamento." />} />
+        <Route path="/producao/apontamentos" component={ProductionAppointments} />
 
         <Route path="/compras/solicitacoes" component={PurchaseRequests} />
         <Route path="/compras/pedidos" component={PurchaseOrders} />
@@ -82,9 +83,9 @@ function Router() {
 
         <Route path="/qualidade/inspecoes" component={QualityInspections} />
 
-        <Route path="/relatorios/estoque-baixo" component={() => <Placeholder title="Relatório: Estoque Baixo" />} />
-        <Route path="/relatorios/producao-atrasada" component={() => <Placeholder title="Relatório: Produção Atrasada" />} />
-        <Route path="/relatorios/compras-pendentes" component={() => <Placeholder title="Relatório: Compras Pendentes" />} />
+        <Route path="/relatorios/estoque-baixo" component={LowStockReport} />
+        <Route path="/relatorios/producao-atrasada" component={DelayedProductionReport} />
+        <Route path="/relatorios/compras-pendentes" component={PendingPurchasesReport} />
 
         <Route component={NotFound} />
       </Switch>

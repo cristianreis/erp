@@ -29,6 +29,38 @@ router.get("/mrp/runs", async (_req, res) => {
   }
 });
 
+router.get("/mrp/runs/:id", async (req, res) => {
+  try {
+    const [run] = await db.select().from(mrpRunsTable).where(eq(mrpRunsTable.id, req.params.id));
+    if (!run) return res.status(404).json({ error: "Não encontrado" });
+    const results = await db
+      .select({
+        id: mrpResultsTable.id,
+        mrpRunId: mrpResultsTable.mrpRunId,
+        productId: mrpResultsTable.productId,
+        productCode: productsTable.code,
+        productName: productsTable.name,
+        grossRequirement: mrpResultsTable.grossRequirement,
+        availableStock: mrpResultsTable.availableStock,
+        reservedStock: mrpResultsTable.reservedStock,
+        openProductionQuantity: mrpResultsTable.openProductionQuantity,
+        openPurchaseQuantity: mrpResultsTable.openPurchaseQuantity,
+        netRequirement: mrpResultsTable.netRequirement,
+        suggestedAction: mrpResultsTable.suggestedAction,
+        suggestedQuantity: mrpResultsTable.suggestedQuantity,
+        dueDate: mrpResultsTable.dueDate,
+        sourceReference: mrpResultsTable.sourceReference,
+        notes: mrpResultsTable.notes,
+      })
+      .from(mrpResultsTable)
+      .leftJoin(productsTable, eq(mrpResultsTable.productId, productsTable.id))
+      .where(eq(mrpResultsTable.mrpRunId, req.params.id));
+    res.json({ run, results });
+  } catch (err) {
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
 router.get("/mrp/runs/:id/results", async (req, res) => {
   try {
     const rows = await db
