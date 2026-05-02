@@ -23,6 +23,7 @@ import ProductionAppointments from "@/pages/production/appointments";
 import { ProductionQueue } from "@/pages/production/queue";
 import BomPage from "@/pages/engineering/bom";
 import Routings from "@/pages/engineering/routings";
+import DocumentsPage from "@/pages/engineering/documents";
 import PurchaseRequests from "@/pages/purchasing/requests";
 import PurchaseOrders from "@/pages/purchasing/orders";
 import Receipts from "@/pages/purchasing/receipts";
@@ -59,6 +60,7 @@ function Router() {
 
         <Route path="/ficha-tecnica" component={BomPage} />
         <Route path="/roteiros" component={Routings} />
+        <Route path="/engenharia/documentos" component={DocumentsPage} />
 
         <Route path="/estoque" component={StockBalances} />
         <Route path="/estoque/movimentacoes" component={StockMovements} />

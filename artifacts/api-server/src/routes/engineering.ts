@@ -5,14 +5,17 @@ import {
   bomItemsTable,
   routingsTable,
   routingOperationsTable,
+  productDocumentsTable,
   productsTable,
   operationsTable,
   machinesTable,
   sectorsTable,
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 
 const router = Router();
+
+// ─── BOM ─────────────────────────────────────────────────────────────────────
 
 router.get("/bom", async (req, res) => {
   try {
@@ -147,6 +150,8 @@ router.delete("/bom/items/:itemId", async (req, res) => {
   }
 });
 
+// ─── ROUTINGS ────────────────────────────────────────────────────────────────
+
 router.get("/routings", async (req, res) => {
   try {
     const { productId } = req.query as Record<string, string>;
@@ -191,6 +196,9 @@ router.get("/routings/:id", async (req, res) => {
         sectorName: sectorsTable.name,
         setupTimeMinutes: routingOperationsTable.setupTimeMinutes,
         standardTimeMinutes: routingOperationsTable.standardTimeMinutes,
+        isExternal: routingOperationsTable.isExternal,
+        tools: routingOperationsTable.tools,
+        checklist: routingOperationsTable.checklist,
         notes: routingOperationsTable.notes,
       })
       .from(routingOperationsTable)
@@ -240,6 +248,115 @@ router.delete("/routings/:id", async (req, res) => {
     await db.delete(routingOperationsTable).where(eq(routingOperationsTable.routingId, req.params.id));
     const [row] = await db.delete(routingsTable).where(eq(routingsTable.id, req.params.id)).returning();
     if (!row) return res.status(404).json({ error: "Roteiro não encontrado" });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+// ─── DOCUMENTOS ──────────────────────────────────────────────────────────────
+
+router.get("/documents", async (req, res) => {
+  try {
+    const { productId, documentType, status } = req.query as Record<string, string>;
+    let query = db
+      .select({
+        id: productDocumentsTable.id,
+        productId: productDocumentsTable.productId,
+        productCode: productsTable.code,
+        productName: productsTable.name,
+        name: productDocumentsTable.name,
+        description: productDocumentsTable.description,
+        documentType: productDocumentsTable.documentType,
+        revision: productDocumentsTable.revision,
+        status: productDocumentsTable.status,
+        objectPath: productDocumentsTable.objectPath,
+        fileSize: productDocumentsTable.fileSize,
+        mimeType: productDocumentsTable.mimeType,
+        changeReason: productDocumentsTable.changeReason,
+        responsiblePerson: productDocumentsTable.responsiblePerson,
+        approvedBy: productDocumentsTable.approvedBy,
+        approvedAt: productDocumentsTable.approvedAt,
+        notes: productDocumentsTable.notes,
+        createdAt: productDocumentsTable.createdAt,
+        updatedAt: productDocumentsTable.updatedAt,
+      })
+      .from(productDocumentsTable)
+      .leftJoin(productsTable, eq(productDocumentsTable.productId, productsTable.id))
+      .$dynamic();
+
+    if (productId) query = query.where(eq(productDocumentsTable.productId, productId));
+    const rows = await query.orderBy(desc(productDocumentsTable.createdAt));
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+router.get("/documents/:id", async (req, res) => {
+  try {
+    const [row] = await db
+      .select({
+        id: productDocumentsTable.id,
+        productId: productDocumentsTable.productId,
+        productCode: productsTable.code,
+        productName: productsTable.name,
+        name: productDocumentsTable.name,
+        description: productDocumentsTable.description,
+        documentType: productDocumentsTable.documentType,
+        revision: productDocumentsTable.revision,
+        status: productDocumentsTable.status,
+        objectPath: productDocumentsTable.objectPath,
+        fileSize: productDocumentsTable.fileSize,
+        mimeType: productDocumentsTable.mimeType,
+        changeReason: productDocumentsTable.changeReason,
+        responsiblePerson: productDocumentsTable.responsiblePerson,
+        approvedBy: productDocumentsTable.approvedBy,
+        approvedAt: productDocumentsTable.approvedAt,
+        notes: productDocumentsTable.notes,
+        createdAt: productDocumentsTable.createdAt,
+        updatedAt: productDocumentsTable.updatedAt,
+      })
+      .from(productDocumentsTable)
+      .leftJoin(productsTable, eq(productDocumentsTable.productId, productsTable.id))
+      .where(eq(productDocumentsTable.id, req.params.id));
+    if (!row) return res.status(404).json({ error: "Documento não encontrado" });
+    res.json(row);
+  } catch (err) {
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+router.post("/documents", async (req, res) => {
+  try {
+    const [row] = await db.insert(productDocumentsTable).values(req.body).returning();
+    res.status(201).json(row);
+  } catch (err) {
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+router.put("/documents/:id", async (req, res) => {
+  try {
+    const [row] = await db
+      .update(productDocumentsTable)
+      .set({ ...req.body, updatedAt: new Date() })
+      .where(eq(productDocumentsTable.id, req.params.id))
+      .returning();
+    if (!row) return res.status(404).json({ error: "Documento não encontrado" });
+    res.json(row);
+  } catch (err) {
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+router.delete("/documents/:id", async (req, res) => {
+  try {
+    const [row] = await db
+      .delete(productDocumentsTable)
+      .where(eq(productDocumentsTable.id, req.params.id))
+      .returning();
+    if (!row) return res.status(404).json({ error: "Documento não encontrado" });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "Erro interno" });

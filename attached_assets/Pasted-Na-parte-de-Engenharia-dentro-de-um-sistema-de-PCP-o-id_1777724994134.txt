@@ -1,0 +1,295 @@
+Na parte de Engenharia dentro de um sistema de PCP, o ideal é ter tudo que define como o produto é fabricado, quais materiais usa, quais operações passa, quais máquinas utiliza, tempos, desenhos e revisões. Essa parte alimenta diretamente o MRP, estoque, compras, produção e montagem.
+
+1. Cadastro técnico do produto
+
+Cada produto precisa ter uma ficha técnica completa.
+
+Exemplo: Acoplamento L-60
+
+Campos importantes:
+
+Campo	Exemplo
+Código do produto	ACL-060
+Descrição	Acoplamento L-60 completo
+Tipo	Produto acabado
+Unidade	Peça / conjunto
+Família	Acoplamentos
+Status	Ativo / inativo / em desenvolvimento
+Peso	2,5 kg
+Desenho técnico	PDF, DWG, imagem
+Revisão do desenho	Rev. 01, Rev. 02
+Observações técnicas	Usinar conforme desenho
+2. Estrutura do produto / BOM
+
+Essa é uma das partes mais importantes. O sistema precisa saber quais componentes formam cada produto.
+
+Exemplo:
+
+Produto acabado: Acoplamento L-60
+
+Componente	Quantidade	Tipo
+Cubo L-60	2	Peça usinada
+Anel L-60	1	Peça usinada
+Flange L-60	2	Peça usinada
+Lona	1	Comprado
+Parafuso	4	Comprado
+Arruela	4	Comprado
+Porca	4	Comprado
+
+O sistema precisa permitir estrutura com vários níveis, por exemplo:
+
+Produto acabado
+→ Subconjunto
+→ Peça fundida
+→ Operação de usinagem
+→ Montagem final
+
+3. Classificação dos itens
+
+Na engenharia, cada item precisa ser classificado corretamente, porque isso muda o comportamento do PCP.
+
+Tipos recomendados:
+
+Tipo de item	Explicação
+Produto acabado	Produto pronto para vender
+Produto semiacabado	Já passou por alguma operação, mas ainda não está finalizado
+Material fundido	Peça bruta que precisa ser usinada
+Matéria-prima	Barra, chapa, tarugo, tubo etc.
+Componente comprado	Parafuso, porca, arruela, rolamento etc.
+Subconjunto	Parte montada que entra em outro produto
+Serviço externo	Tratamento térmico, pintura, zincagem etc.
+4. Roteiro de fabricação
+
+O roteiro mostra por onde a peça passa até ficar pronta.
+
+Exemplo: Cubo L-60
+
+Seq.	Operação	Máquina / Setor	Tempo setup	Tempo por peça
+10	Tornear externo	Torno CNC	20 min	8 min
+20	Furar	Furadeira	10 min	4 min
+30	Rosquear	Rosqueadeira	5 min	3 min
+40	Inspeção	Qualidade	0 min	2 min
+
+O sistema precisa permitir:
+
+Mais de uma máquina possível para a mesma operação;
+Checklist por operação;
+Tempo de setup;
+Tempo por peça;
+Operador responsável;
+Setor;
+Ferramentas usadas;
+Observações de fabricação;
+Operação interna ou externa.
+5. Cadastro de operações
+
+Deve existir uma tela para cadastrar as operações padrão da empresa.
+
+Exemplos:
+
+Código	Operação
+OP-001	Tornear
+OP-002	Fresar
+OP-003	Furar
+OP-004	Rosquear
+OP-005	Soldar
+OP-006	Rebarbar
+OP-007	Montar
+OP-008	Pintar
+OP-009	Inspecionar
+OP-010	Embalar
+
+Essas operações serão usadas nos roteiros dos produtos.
+
+6. Cadastro de máquinas e recursos
+
+A engenharia também precisa informar quais máquinas podem executar cada operação.
+
+Exemplo:
+
+Máquina	Operações possíveis	Status
+Torno CNC 01	Tornear, facear, furar	Ativa
+Torno CNC 02	Tornear, rosquear	Ativa
+Fresadora 01	Fresar, abrir canal	Ativa
+Furadeira 01	Furar, escarear	Ativa
+
+Campos importantes:
+
+Código da máquina;
+Nome;
+Tipo;
+Capacidade;
+Operações permitidas;
+Custo hora;
+Setor;
+Status;
+Observações.
+7. Desenhos técnicos e documentos
+
+Cada produto e componente precisa ter seus documentos anexados.
+
+O sistema deve aceitar:
+
+PDF;
+Imagem;
+DWG/DXF, caso necessário;
+Instrução de trabalho;
+Plano de controle;
+Checklist;
+Fotos da peça;
+Ficha técnica;
+Certificados.
+
+Muito importante: o sistema precisa controlar revisão do desenho.
+
+Exemplo:
+
+Produto	Desenho	Revisão	Data	Status
+Cubo L-60	CUBO-L60.pdf	Rev. 01	02/05/2026	Liberado
+Cubo L-60	CUBO-L60.pdf	Rev. 02	15/06/2026	Em análise
+8. Controle de revisão de engenharia
+
+Essa parte evita que a produção fabrique peça com desenho antigo.
+
+O sistema precisa ter:
+
+Campo	Função
+Revisão atual	Mostra qual desenho está válido
+Histórico de alterações	Mostra o que mudou
+Motivo da alteração	Correção, melhoria, cliente etc.
+Responsável	Quem alterou
+Data da alteração	Quando foi alterado
+Aprovação	Quem liberou
+Status	Em desenvolvimento, aprovado, obsoleto
+
+Status recomendados:
+
+Em desenvolvimento;
+Em análise;
+Aprovado;
+Liberado para produção;
+Obsoleto;
+Bloqueado.
+9. Conversão entre bruto, usinado e acabado
+
+Para metalúrgica, isso é essencial.
+
+Exemplo:
+
+Item	Tipo	Vira
+Cubo L-60 fundido	Material fundido	Cubo L-60 usinado
+Cubo L-60 usinado	Semiacabado	Acoplamento L-60 montado
+Acoplamento L-60 montado	Produto acabado	Produto vendido
+
+O sistema precisa saber que:
+
+A peça fundida entra no estoque como bruta;
+Depois da usinagem, sai do estoque bruto e entra como usinada;
+Depois da montagem, sai dos componentes e entra como produto acabado.
+10. Ficha técnica de fabricação
+
+Cada item fabricado deve ter uma ficha completa com:
+
+Código da peça;
+Descrição;
+Material;
+Peso bruto;
+Peso acabado;
+Desenho;
+Revisão;
+Componentes;
+Roteiro de fabricação;
+Operações;
+Máquinas possíveis;
+Tempo padrão;
+Ferramentas;
+Checklist;
+Observações;
+Controle de qualidade;
+Embalagem;
+Status de liberação.
+11. Controle de qualidade ligado à engenharia
+
+A engenharia deve definir o que precisa ser inspecionado.
+
+Exemplo:
+
+Operação	Item de controle	Instrumento	Tolerância
+Tornear	Diâmetro externo	Paquímetro	Ø60 ±0,05
+Furar	Diâmetro do furo	Súbito	Ø20 ±0,03
+Rosquear	Rosca	Calibrador	M8
+Montagem	Aperto dos parafusos	Torquímetro	Conforme padrão
+
+Isso depois aparece para a produção e qualidade.
+
+12. Engenharia precisa alimentar o MRP
+
+O MRP depende diretamente da engenharia.
+
+Para o MRP funcionar, o sistema precisa saber:
+
+Estrutura do produto;
+Quantidade de cada componente;
+Estoque atual;
+Itens comprados;
+Itens fabricados;
+Itens fundidos;
+Tempo de fabricação;
+Tempo de compra;
+Estoque mínimo;
+Lote mínimo;
+Roteiro de produção;
+Operações necessárias.
+
+Sem engenharia bem cadastrada, o MRP não calcula corretamente.
+
+13. Telas que a parte de Engenharia deve ter no sistema
+
+Eu criaria no sistema PCP as seguintes telas:
+
+Tela	Função
+Cadastro de produtos	Cadastrar produto acabado, semiacabado, fundido e matéria-prima
+Estrutura do produto / BOM	Montar a lista de componentes de cada produto
+Roteiro de fabricação	Definir operações, máquinas e tempos
+Cadastro de operações	Criar operações padrão
+Cadastro de máquinas	Definir máquinas e capacidades
+Desenhos e documentos	Anexar desenhos, fotos e instruções
+Revisões de engenharia	Controlar alterações técnicas
+Checklist de operação	Definir conferências por etapa
+Ficha técnica	Ver tudo do produto em uma única tela
+Liberação para produção	Aprovar produto para ser fabricado
+Histórico de alterações	Ver mudanças feitas na engenharia
+Modelo ideal da Engenharia no sistema
+
+A lógica principal seria:
+
+Produto
+→ tem estrutura de componentes
+→ tem desenho técnico
+→ tem roteiro de fabricação
+→ tem operações
+→ usa máquinas
+→ consome matéria-prima ou fundido
+→ gera semiacabado ou acabado
+→ alimenta o MRP, estoque, compras e produção
+
+Resumo prático
+
+Na parte de engenharia do seu sistema PCP, não pode faltar:
+
+Cadastro técnico dos produtos;
+Estrutura do produto, também chamada BOM;
+Roteiro de fabricação;
+Cadastro de operações;
+Cadastro de máquinas;
+Controle de material bruto, usinado e acabado;
+Controle de desenhos técnicos;
+Controle de revisão;
+Checklist por operação;
+Tempos de produção;
+Ferramentas e dispositivos;
+Controle de qualidade;
+Liberação para produção;
+Integração com MRP, estoque, compras e vendas.
+
+Essa parte é a base do sistema. Se a engenharia estiver bem feita, o PCP consegue programar melhor, o estoque baixa corretamente, compras sabe o que comprar, produção sabe o que fabricar e vendas sabe o que realmente está disponível.

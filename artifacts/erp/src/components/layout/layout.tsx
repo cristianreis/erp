@@ -40,6 +40,7 @@ const navGroups = [
     items: [
       { href: "/ficha-tecnica", label: "Ficha Técnica (BOM)", icon: GitMerge },
       { href: "/roteiros", label: "Roteiros de Fabricação", icon: GitMerge },
+      { href: "/engenharia/documentos", label: "Documentos Técnicos", icon: FileWarning },
     ]
   },
   {

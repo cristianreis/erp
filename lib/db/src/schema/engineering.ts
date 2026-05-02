@@ -1,5 +1,6 @@
 import {
   pgTable,
+  pgEnum,
   text,
   uuid,
   boolean,
@@ -51,11 +52,44 @@ export const routingOperationsTable = pgTable("routing_operations", {
   sectorId: uuid("sector_id").references(() => sectorsTable.id),
   setupTimeMinutes: numeric("setup_time_minutes", { precision: 10, scale: 2 }).notNull().default("0"),
   standardTimeMinutes: numeric("standard_time_minutes", { precision: 10, scale: 2 }).notNull().default("0"),
+  isExternal: boolean("is_external").notNull().default(false),
+  tools: text("tools"),
+  checklist: text("checklist"),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const documentTypeEnum = pgEnum("document_type", [
+  "desenho_tecnico", "instrucao_trabalho", "checklist", "foto", "certificado",
+  "ficha_tecnica", "plano_controle", "outro",
+]);
+
+export const documentStatusEnum = pgEnum("document_status", [
+  "em_desenvolvimento", "em_analise", "aprovado", "liberado", "obsoleto", "bloqueado",
+]);
+
+export const productDocumentsTable = pgTable("product_documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  productId: uuid("product_id").notNull().references(() => productsTable.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  documentType: documentTypeEnum("document_type").notNull().default("desenho_tecnico"),
+  revision: text("revision").notNull().default("Rev.00"),
+  status: documentStatusEnum("status").notNull().default("em_desenvolvimento"),
+  objectPath: text("object_path"),
+  fileSize: integer("file_size"),
+  mimeType: text("mime_type"),
+  changeReason: text("change_reason"),
+  responsiblePerson: text("responsible_person"),
+  approvedBy: text("approved_by"),
+  approvedAt: timestamp("approved_at", { withTimezone: true }),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
 export type BomHeader = typeof bomHeadersTable.$inferSelect;
 export type BomItem = typeof bomItemsTable.$inferSelect;
 export type Routing = typeof routingsTable.$inferSelect;
 export type RoutingOperation = typeof routingOperationsTable.$inferSelect;
+export type ProductDocument = typeof productDocumentsTable.$inferSelect;

@@ -11,6 +11,7 @@ import purchasingRouter from "./purchasing";
 import qualityRouter from "./quality";
 import mrpRouter from "./mrp";
 import dashboardRouter from "./dashboard";
+import storageRouter from "./storage";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(purchasingRouter);
 router.use(qualityRouter);
 router.use(mrpRouter);
 router.use(dashboardRouter);
+router.use(storageRouter);
 
 export default router;
