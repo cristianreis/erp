@@ -24,7 +24,7 @@ interface DataTableProps<T> {
 }
 
 export function DataTable<T extends Record<string, any>>({
-  data,
+  data: rawData,
   columns,
   onSearch,
   searchPlaceholder = "Pesquisar...",
@@ -33,6 +33,7 @@ export function DataTable<T extends Record<string, any>>({
   isLoading,
   emptyMessage = "Nenhum registro encontrado.",
 }: DataTableProps<T>) {
+  const data = Array.isArray(rawData) ? rawData : [];
   const [search, setSearch] = useState("");
 
   const handleSearch = (v: string) => {

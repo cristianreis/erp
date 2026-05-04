@@ -1,4 +1,5 @@
 import React from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListSalesOrders } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -11,7 +12,7 @@ import { Truck } from "lucide-react";
 
 export default function Shipping() {
   const { data: all = [], isLoading } = useListSalesOrders({ status: "aprovado" });
-  const ready = (all as any[]).filter(o => ["aprovado", "pronto_expedicao", "em_producao"].includes(o.status));
+  const ready = safeArray(all).filter(o => ["aprovado", "pronto_expedicao", "em_producao"].includes(o.status));
 
   const columns = [
     { key: "orderNumber", header: "Pedido", className: "font-mono text-xs w-[100px]" },

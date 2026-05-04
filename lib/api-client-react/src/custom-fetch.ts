@@ -367,5 +367,21 @@ export async function customFetch<T = unknown>(
     throw new ApiError(response, errorData, requestInfo);
   }
 
+  // When the API backend is unreachable, the Vite dev server (or any SPA
+  // fallback) may serve the index.html with 200 OK for /api/* routes.
+  // Detect this situation and throw so React Query treats it as an error.
+  const url = resolveUrl(input);
+  const contentType = getMediaType(response.headers);
+  if (
+    url.startsWith("/api/") &&
+    contentType === "text/html"
+  ) {
+    throw new ApiError(
+      response,
+      { message: "API server unreachable – received HTML instead of JSON" },
+      requestInfo,
+    );
+  }
+
   return (await parseSuccessBody(response, responseType, requestInfo)) as T;
 }

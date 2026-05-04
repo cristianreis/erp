@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListPurchaseRequests,
@@ -126,7 +127,7 @@ export default function PurchaseRequests() {
     createM.mutate({
       data: {
         productId: data.productId,
-        quantity: data.quantity,
+        quantity: parseFloat(data.quantity),
         neededDate: data.neededDate || null,
         source: data.source,
         notes: data.description,
@@ -357,7 +358,7 @@ export default function PurchaseRequests() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {(products as any[]).map((p) => (
+                        {safeArray(products).map((p) => (
                           <SelectItem key={p.id} value={p.id}>
                             {p.code} – {p.name}
                           </SelectItem>

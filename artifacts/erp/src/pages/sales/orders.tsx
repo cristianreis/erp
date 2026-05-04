@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListSalesOrders, useCreateSalesOrder,
@@ -77,7 +78,7 @@ export default function SalesOrders() {
                   <FormItem><FormLabel>Cliente *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                      <SelectContent>{(customers as any[]).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                      <SelectContent>{safeArray(customers).map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
                     </Select><FormMessage />
                   </FormItem>
                 )} />
@@ -99,7 +100,7 @@ export default function SalesOrders() {
                         <FormItem><FormLabel className="text-xs">Produto</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl><SelectTrigger className="text-xs"><SelectValue placeholder="Produto..." /></SelectTrigger></FormControl>
-                            <SelectContent>{(products as any[]).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
+                            <SelectContent>{safeArray(products).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
                           </Select>
                         </FormItem>
                       )} />

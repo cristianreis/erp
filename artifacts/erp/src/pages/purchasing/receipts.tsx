@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useListReceipts, useListPurchaseOrders, useListWarehouses } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -169,7 +170,7 @@ export default function Receipts() {
   });
 
   // Only show POs that can be received
-  const receivablePOs = (pos as any[]).filter(p =>
+  const receivablePOs = safeArray(pos).filter(p =>
     ["enviado", "confirmado", "recebido_parcial"].includes(p.status)
   );
 
@@ -258,7 +259,7 @@ export default function Receipts() {
                         <SelectValue placeholder="Selecione o almoxarifado padrão..." />
                       </SelectTrigger>
                       <SelectContent>
-                        {(warehouses as any[]).map((w: any) => (
+                        {safeArray(warehouses).map((w: any) => (
                           <SelectItem key={w.id} value={w.id}>
                             <div className="flex items-center gap-2">
                               <Warehouse className="h-3 w-3" />
@@ -337,7 +338,7 @@ export default function Receipts() {
                                     <SelectValue placeholder="Almox..." />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {(warehouses as any[]).map((w: any) => (
+                                    {safeArray(warehouses).map((w: any) => (
                                       <SelectItem key={w.id} value={w.id} className="text-xs">{w.name}</SelectItem>
                                     ))}
                                   </SelectContent>

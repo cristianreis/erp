@@ -1,6 +1,9 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -30,5 +33,21 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+
+const apiServerDir = path.dirname(fileURLToPath(import.meta.url));
+const clientDist = path.resolve(apiServerDir, "../../erp/dist/public");
+const clientIndex = path.join(clientDist, "index.html");
+
+if (fs.existsSync(clientIndex)) {
+  app.use(express.static(clientDist));
+  app.use((req, res, next) => {
+    if (req.method !== "GET" || req.path.startsWith("/api/")) {
+      next();
+      return;
+    }
+
+    res.sendFile(clientIndex);
+  });
+}
 
 export default app;

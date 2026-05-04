@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListQualityInspections, useCreateQualityInspection, useListProducts, useListProductionOrders } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -22,7 +23,7 @@ const RESULTS = [
 ];
 
 type InspForm = { productId: string; productionOrderId: string; inspectedQuantity: string; approvedQuantity: string; rejectedQuantity: string; status: string; notes: string; };
-const dfv: InspForm = { productId: "", productionOrderId: "", inspectedQuantity: "0", approvedQuantity: "0", rejectedQuantity: "0", status: "aprovado", notes: "" };
+const dfv: InspForm = { productId: "", productionOrderId: "none", inspectedQuantity: "0", approvedQuantity: "0", rejectedQuantity: "0", status: "aprovado", notes: "" };
 
 export default function QualityInspections() {
   const qc = useQueryClient();
@@ -32,7 +33,7 @@ export default function QualityInspections() {
   const { data: ops = [] } = useListProductionOrders();
   const createM = useCreateQualityInspection({ mutation: { onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/quality/inspections"] }); toast({ title: "Inspeção registrada!" }); setDialogOpen(false); } } });
   const form = useForm<InspForm>({ defaultValues: dfv });
-  const onSubmit = (data: InspForm) => createM.mutate({ data: { ...data, productionOrderId: data.productionOrderId || null } as any });
+  const onSubmit = (data: InspForm) => createM.mutate({ data: { ...data, productionOrderId: data.productionOrderId === "none" ? null : data.productionOrderId } as any });
 
   const columns = [
     { key: "inspectionDate", header: "Data", render: (r: any) => format(new Date(r.inspectionDate), "dd/MM/yy HH:mm", { locale: ptBR }) },
@@ -57,15 +58,15 @@ export default function QualityInspections() {
                 <FormItem><FormLabel>Produto *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                    <SelectContent>{(products as any[]).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
+                    <SelectContent>{safeArray(products).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
                   </Select><FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="productionOrderId" render={({ field }) => (
                 <FormItem><FormLabel>OP (opcional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger></FormControl>
-                    <SelectContent><SelectItem value="">Nenhuma</SelectItem>{(ops as any[]).map(o => <SelectItem key={o.id} value={o.id}>{o.orderNumber} – {o.productName}</SelectItem>)}</SelectContent>
+                    <SelectContent><SelectItem value="none">Nenhuma</SelectItem>{safeArray(ops).map(o => <SelectItem key={o.id} value={o.id}>{o.orderNumber} – {o.productName}</SelectItem>)}</SelectContent>
                   </Select>
                 </FormItem>
               )} />

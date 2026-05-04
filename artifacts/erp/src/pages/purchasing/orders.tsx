@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListPurchaseOrders, useCreatePurchaseOrder, useListSuppliers, useListProducts } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -116,9 +117,9 @@ export default function PurchaseOrders() {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Selecione o fornecedor..." /></SelectTrigger></FormControl>
                       <SelectContent>
-                        {(suppliers as any[]).length === 0
+                        {safeArray(suppliers).length === 0
                           ? <SelectItem value="_none" disabled>Nenhum fornecedor cadastrado</SelectItem>
-                          : (suppliers as any[]).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)
+                          : safeArray(suppliers).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)
                         }
                       </SelectContent>
                     </Select>
@@ -149,9 +150,9 @@ export default function PurchaseOrders() {
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl><SelectTrigger className="text-xs h-8"><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
                             <SelectContent>
-                              {(products as any[]).length === 0
+                              {safeArray(products).length === 0
                                 ? <SelectItem value="_none" disabled>Nenhum produto cadastrado</SelectItem>
-                                : (products as any[]).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)
+                                : safeArray(products).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)
                               }
                             </SelectContent>
                           </Select>

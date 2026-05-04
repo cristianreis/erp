@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListProductionOrders, useListProductionAppointments, useCreateProductionAppointment } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -92,7 +93,7 @@ function AppointmentsList({ orderId }: { orderId: string }) {
 export default function ProductionAppointments() {
   const [selectedOrder, setSelectedOrder] = useState<string>("");
   const { data: orders = [], isLoading } = useListProductionOrders();
-  const activeOrders = (orders as any[]).filter(o => ["em_producao", "liberada"].includes(o.status));
+  const activeOrders = safeArray(orders).filter(o => ["em_producao", "liberada"].includes(o.status));
 
   return (
     <div className="flex flex-col gap-6">

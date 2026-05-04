@@ -58,11 +58,19 @@ function StatCard({ title, value, description, icon: Icon, color }: {
   );
 }
 
+function toArray(data: unknown): any[] {
+  return Array.isArray(data) ? data : [];
+}
+
 export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useGetDashboardStats();
-  const { data: lowStock, isLoading: stockLoading } = useGetDashboardLowStock();
-  const { data: recentMovements, isLoading: movementsLoading } = useGetDashboardRecentMovements();
-  const { data: delayedProduction, isLoading: delayedLoading } = useGetDashboardProductionDelayed();
+  const { data: rawLowStock, isLoading: stockLoading } = useGetDashboardLowStock();
+  const { data: rawRecentMovements, isLoading: movementsLoading } = useGetDashboardRecentMovements();
+  const { data: rawDelayedProduction, isLoading: delayedLoading } = useGetDashboardProductionDelayed();
+
+  const lowStock = toArray(rawLowStock);
+  const recentMovements = toArray(rawRecentMovements);
+  const delayedProduction = toArray(rawDelayedProduction);
 
   return (
     <div className="flex flex-col gap-6">
@@ -98,7 +106,7 @@ export default function Dashboard() {
           <CardContent>
             {stockLoading ? (
               <Skeleton className="h-[200px] w-full" />
-            ) : lowStock && (lowStock as any[]).length > 0 ? (
+            ) : lowStock.length > 0 ? (
               <div className="overflow-auto max-h-[300px]">
                 <Table>
                   <TableHeader>
@@ -111,7 +119,7 @@ export default function Dashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(lowStock as any[]).map((item, idx) => (
+                    {lowStock.map((item, idx) => (
                       <TableRow key={item.productId ?? idx}>
                         <TableCell className="font-mono text-xs">{item.productCode}</TableCell>
                         <TableCell className="truncate max-w-[150px]" title={item.productName}>
@@ -151,7 +159,7 @@ export default function Dashboard() {
           <CardContent>
             {delayedLoading ? (
               <Skeleton className="h-[200px] w-full" />
-            ) : delayedProduction && (delayedProduction as any[]).length > 0 ? (
+            ) : delayedProduction.length > 0 ? (
               <div className="overflow-auto max-h-[300px]">
                 <Table>
                   <TableHeader>
@@ -163,7 +171,7 @@ export default function Dashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(delayedProduction as any[]).map((op) => (
+                    {delayedProduction.map((op) => (
                       <TableRow key={op.id}>
                         <TableCell className="font-mono text-xs">{op.orderNumber}</TableCell>
                         <TableCell className="truncate max-w-[120px]" title={op.productName}>
@@ -200,7 +208,7 @@ export default function Dashboard() {
         <CardContent>
           {movementsLoading ? (
             <Skeleton className="h-[200px] w-full" />
-          ) : recentMovements && (recentMovements as any[]).length > 0 ? (
+          ) : recentMovements.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -212,7 +220,7 @@ export default function Dashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(recentMovements as any[]).map((mov) => (
+                {recentMovements.map((mov) => (
                   <TableRow key={mov.id}>
                     <TableCell className="text-xs whitespace-nowrap">
                       {format(new Date(mov.movementDate), "dd/MM/yy HH:mm", { locale: ptBR })}

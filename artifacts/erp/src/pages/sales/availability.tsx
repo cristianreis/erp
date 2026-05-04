@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useListProducts, useGetStockAvailability } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +26,7 @@ export default function StockAvailability() {
             <SelectValue placeholder="Selecione um produto..." />
           </SelectTrigger>
           <SelectContent>
-            {(products as any[]).map(p => (
+            {safeArray(products).map(p => (
               <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>
             ))}
           </SelectContent>
@@ -74,7 +75,7 @@ export default function StockAvailability() {
             </CardContent>
           </Card>
 
-          {a.balancesByWarehouse && (a.balancesByWarehouse as any[]).length > 0 && (
+          {Array.isArray(a.balancesByWarehouse) && a.balancesByWarehouse.length > 0 && (
             <div className="col-span-full">
               <h3 className="text-sm font-semibold mb-2">Saldo por Almoxarifado</h3>
               <div className="border rounded-md overflow-hidden">
@@ -88,7 +89,7 @@ export default function StockAvailability() {
                     </tr>
                   </thead>
                   <tbody>
-                    {(a.balancesByWarehouse as any[]).map((b: any, i: number) => (
+                    {safeArray(a.balancesByWarehouse).map((b: any, i: number) => (
                       <tr key={i} className="border-t">
                         <td className="px-4 py-2 font-medium">{b.warehouseName}</td>
                         <td className="px-4 py-2 text-right">{parseFloat(b.totalStock ?? 0).toFixed(2)}</td>

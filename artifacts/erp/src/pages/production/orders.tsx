@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useListProductionOrders, useCreateProductionOrder,
@@ -32,7 +33,7 @@ const PRIORITIES = [
 ];
 
 type OrderForm = { productId: string; orderType: string; priority: string; quantityPlanned: string; salesOrderId: string; plannedStartDate: string; plannedEndDate: string; notes: string; };
-const dfv: OrderForm = { productId: "", orderType: "usinagem", priority: "normal", quantityPlanned: "1", salesOrderId: "", plannedStartDate: "", plannedEndDate: "", notes: "" };
+const dfv: OrderForm = { productId: "", orderType: "usinagem", priority: "normal", quantityPlanned: "1", salesOrderId: "none", plannedStartDate: "", plannedEndDate: "", notes: "" };
 
 export default function ProductionOrders() {
   const qc = useQueryClient();
@@ -48,7 +49,7 @@ export default function ProductionOrders() {
   const form = useForm<OrderForm>({ defaultValues: dfv });
 
   const onSubmit = (data: OrderForm) => {
-    const payload = { ...data, salesOrderId: data.salesOrderId || null, plannedStartDate: data.plannedStartDate || null, plannedEndDate: data.plannedEndDate || null };
+    const payload = { ...data, quantityPlanned: parseFloat(data.quantityPlanned), salesOrderId: data.salesOrderId === "none" ? null : data.salesOrderId, plannedStartDate: data.plannedStartDate || null, plannedEndDate: data.plannedEndDate || null };
     createM.mutate({ data: payload as any });
   };
 
@@ -90,7 +91,7 @@ export default function ProductionOrders() {
                 <FormItem><FormLabel>Produto *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                    <SelectContent>{(products as any[]).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
+                    <SelectContent>{safeArray(products).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
                   </Select><FormMessage />
                 </FormItem>
               )} />
@@ -117,11 +118,11 @@ export default function ProductionOrders() {
               </div>
               <FormField control={form.control} name="salesOrderId" render={({ field }) => (
                 <FormItem><FormLabel>Pedido de Venda (opcional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
-                      {(salesOrders as any[]).map(o => <SelectItem key={o.id} value={o.id}>{o.orderNumber} – {o.customerName}</SelectItem>)}
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      {safeArray(salesOrders).map(o => <SelectItem key={o.id} value={o.id}>{o.orderNumber} – {o.customerName}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </FormItem>

@@ -1,4 +1,5 @@
 import React from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListProductionOrders, useStartProductionOrder, useFinishProductionOrder } from "@workspace/api-client-react";
 import { DataTable } from "@/components/ui/data-table";
@@ -23,7 +24,7 @@ export function ProductionQueue({ orderType, title, description }: Props) {
   const startM = useStartProductionOrder({ mutation: { onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/production-orders"] }); toast({ title: "OP iniciada!" }); } } });
   const finishM = useFinishProductionOrder({ mutation: { onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/production-orders"] }); toast({ title: "OP finalizada!" }); setFinishRow(null); } } });
 
-  const active = (all as any[]).filter(o => !["finalizada", "cancelada"].includes(o.status));
+  const active = safeArray(all).filter(o => !["finalizada", "cancelada"].includes(o.status));
 
   const columns = [
     { key: "orderNumber", header: "OP", className: "font-mono text-xs w-[100px]" },

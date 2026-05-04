@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListProducts } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -348,7 +349,7 @@ export default function DocumentsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os produtos</SelectItem>
-            {(products as any[]).map((p: any) => (
+            {safeArray(products).map((p: any) => (
               <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>
             ))}
           </SelectContent>
@@ -381,7 +382,7 @@ export default function DocumentsPage() {
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Selecione o produto..." /></SelectTrigger></FormControl>
                       <SelectContent>
-                        {(products as any[]).map((p: any) => (
+                        {safeArray(products).map((p: any) => (
                           <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>
                         ))}
                       </SelectContent>

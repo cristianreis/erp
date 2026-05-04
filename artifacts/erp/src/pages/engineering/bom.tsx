@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListBomHeaders, useCreateBomHeader, useListProducts } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -30,7 +31,17 @@ export default function BomPage() {
 
   const form = useForm<BomForm>({ defaultValues: dfv });
   const { fields, append, remove } = useFieldArray({ control: form.control, name: "items" });
-  const onSubmit = (data: BomForm) => createM.mutate({ data: data as any });
+  const onSubmit = (data: BomForm) => {
+    const payload = {
+      ...data,
+      items: data.items.map(i => ({
+        ...i,
+        quantityPerParent: parseFloat(i.quantityPerParent),
+        scrapPercentage: parseFloat(i.scrapPercentage)
+      }))
+    };
+    createM.mutate({ data: payload as any });
+  };
 
   const columns = [
     { key: "productCode", header: "Código", className: "font-mono text-xs w-[110px]" },
@@ -54,7 +65,7 @@ export default function BomPage() {
                 <FormItem><label className="text-sm font-medium">Produto Pai *</label>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Selecione o produto..." /></SelectTrigger></FormControl>
-                    <SelectContent>{(products as any[]).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
+                    <SelectContent>{safeArray(products).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </FormItem>
               )} />
@@ -78,7 +89,7 @@ export default function BomPage() {
                         <FormItem><label className="text-xs font-medium">Componente</label>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl><SelectTrigger className="text-xs"><SelectValue placeholder="..." /></SelectTrigger></FormControl>
-                            <SelectContent>{(products as any[]).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
+                            <SelectContent>{safeArray(products).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
                           </Select>
                         </FormItem>
                       )} />

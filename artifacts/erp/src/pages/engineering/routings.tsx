@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListRoutings, useCreateRouting, useListProducts, useListOperations, useListMachines, useListSectors } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -30,7 +31,7 @@ export default function Routings() {
   const form = useForm<RoutingForm>({ defaultValues: dfv });
   const { fields, append, remove } = useFieldArray({ control: form.control, name: "operations" });
   const onSubmit = (data: RoutingForm) => {
-    const ops = data.operations.map(o => ({ ...o, sequenceNumber: parseInt(o.sequenceNumber), machineId: o.machineId || null, sectorId: o.sectorId || null }));
+    const ops = data.operations.map(o => ({ ...o, sequenceNumber: parseInt(o.sequenceNumber), machineId: o.machineId === "none" ? null : o.machineId || null, sectorId: o.sectorId === "none" ? null : o.sectorId || null, setupTimeMinutes: parseFloat(o.setupTimeMinutes), standardTimeMinutes: parseFloat(o.standardTimeMinutes) }));
     createM.mutate({ data: { ...data, operations: ops } as any });
   };
 
@@ -55,7 +56,7 @@ export default function Routings() {
                 <FormItem><FormLabel>Produto</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
-                    <SelectContent>{(products as any[]).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
+                    <SelectContent>{safeArray(products).map(p => <SelectItem key={p.id} value={p.id}>{p.code} – {p.name}</SelectItem>)}</SelectContent>
                   </Select>
                 </FormItem>
               )} />
@@ -81,15 +82,15 @@ export default function Routings() {
                       <FormItem><FormLabel className="text-xs">Operação</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl><SelectTrigger className="text-xs"><SelectValue placeholder="..." /></SelectTrigger></FormControl>
-                          <SelectContent>{(operations as any[]).map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
+                          <SelectContent>{safeArray(operations).map(o => <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>)}</SelectContent>
                         </Select>
                       </FormItem>
                     )} /></div>
                     <div className="col-span-3"><FormField control={form.control} name={`operations.${i}.machineId`} render={({ field }) => (
                       <FormItem><FormLabel className="text-xs">Máquina</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                        <Select onValueChange={field.onChange} value={field.value || "none"}>
                           <FormControl><SelectTrigger className="text-xs"><SelectValue placeholder="..." /></SelectTrigger></FormControl>
-                          <SelectContent><SelectItem value="">Nenhuma</SelectItem>{(machines as any[]).map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}</SelectContent>
+                          <SelectContent><SelectItem value="none">Nenhuma</SelectItem>{safeArray(machines).map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}</SelectContent>
                         </Select>
                       </FormItem>
                     )} /></div>

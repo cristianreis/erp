@@ -1,4 +1,5 @@
 import React from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useListPurchaseOrders } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/ui/page-header";
 import { DataTable } from "@/components/ui/data-table";
@@ -10,7 +11,7 @@ import { ptBR } from "date-fns/locale";
 
 export default function PendingPurchasesReport() {
   const { data: all = [], isLoading } = useListPurchaseOrders();
-  const pending = (all as any[]).filter(o => !["recebido_total", "cancelado"].includes(o.status));
+  const pending = safeArray(all).filter(o => !["recebido_total", "cancelado"].includes(o.status));
 
   const columns = [
     { key: "orderNumber", header: "Pedido", className: "font-mono text-xs w-[100px]" },

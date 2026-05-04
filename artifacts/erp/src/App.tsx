@@ -40,6 +40,14 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      // Prevent stale non-array data from sneaking through when backend is down.
+      // When the API server is offline, Vite serves the SPA index.html for /api/*
+      // routes with 200 OK. customFetch then returns a string (HTML), which React
+      // Query stores as `data`. Pages expect arrays, so .map() / .filter() crash.
+      // This structuralSharing: false + the select below prevents that.
+    },
+    mutations: {
+      retry: 0,
     },
   },
 });

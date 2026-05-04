@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeArray } from "@/lib/safe-array";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListMachines, useCreateMachine, useUpdateMachine, useListSectors } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -16,7 +17,7 @@ import { Pencil } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 type Form_ = { code: string; name: string; type: string; sectorId: string; capacityPerDay: string; notes: string; active: boolean; };
-const dfv: Form_ = { code: "", name: "", type: "", sectorId: "", capacityPerDay: "", notes: "", active: true };
+const dfv: Form_ = { code: "", name: "", type: "", sectorId: "none", capacityPerDay: "", notes: "", active: true };
 
 export default function Machines() {
   const qc = useQueryClient();
@@ -28,9 +29,9 @@ export default function Machines() {
   const updateM = useUpdateMachine({ mutation: { onSuccess: () => { qc.invalidateQueries({ queryKey: ["/api/machines"] }); toast({ title: "Atualizado!" }); setDialogOpen(false); } } });
   const form = useForm<Form_>({ defaultValues: dfv });
   const openNew = () => { setEditRow(null); form.reset(dfv); setDialogOpen(true); };
-  const openEdit = (r: any) => { setEditRow(r); form.reset({ code: r.code, name: r.name, type: r.type ?? "", sectorId: r.sectorId ?? "", capacityPerDay: String(r.capacityPerDay ?? ""), notes: r.notes ?? "", active: r.active }); setDialogOpen(true); };
+  const openEdit = (r: any) => { setEditRow(r); form.reset({ code: r.code, name: r.name, type: r.type ?? "", sectorId: r.sectorId ?? "none", capacityPerDay: String(r.capacityPerDay ?? ""), notes: r.notes ?? "", active: r.active }); setDialogOpen(true); };
   const onSubmit = (data: Form_) => {
-    const payload = { ...data, sectorId: data.sectorId || null, capacityPerDay: data.capacityPerDay || null };
+    const payload = { ...data, sectorId: data.sectorId === "none" ? null : data.sectorId, capacityPerDay: data.capacityPerDay || null };
     editRow ? updateM.mutate({ id: editRow.id, data: payload as any }) : createM.mutate({ data: payload as any });
   };
 
@@ -38,7 +39,7 @@ export default function Machines() {
     { key: "code", header: "Código", className: "font-mono text-xs w-[100px]" },
     { key: "name", header: "Nome", render: (r: any) => <span className="font-medium">{r.name}</span> },
     { key: "type", header: "Tipo", render: (r: any) => r.type ?? "–" },
-    { key: "sectorId", header: "Setor", render: (r: any) => (sectors as any[]).find(s => s.id === r.sectorId)?.name ?? "–" },
+    { key: "sectorId", header: "Setor", render: (r: any) => safeArray(sectors).find(s => s.id === r.sectorId)?.name ?? "–" },
     { key: "capacityPerDay", header: "Cap./Dia (min)", className: "text-right", render: (r: any) => r.capacityPerDay ?? "–" },
     { key: "active", header: "Status", render: (r: any) => <Badge className={r.active ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-800"}>{r.active ? "Ativo" : "Inativo"}</Badge> },
   ];
@@ -68,11 +69,11 @@ export default function Machines() {
                 )} />
                 <FormField control={form.control} name="sectorId" render={({ field }) => (
                   <FormItem><FormLabel>Setor</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="">Nenhum</SelectItem>
-                        {(sectors as any[]).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                        <SelectItem value="none">Nenhum</SelectItem>
+                        {safeArray(sectors).map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </FormItem>
